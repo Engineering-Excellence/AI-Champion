@@ -1,0 +1,8 @@
+PyMuPDF #fitz
+pandas
+numpy
+
+streamlit
+seaborn
+matplotlib
+python-docx

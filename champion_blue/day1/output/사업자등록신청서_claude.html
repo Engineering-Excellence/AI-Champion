@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>사업자등록신청서(개인사업자용)</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Malgun Gothic", "맑은 고딕", Dotum, sans-serif;
+    font-size: 12px;
+    margin: 0;
+    padding: 20px;
+    background: #f0f0f0;
+  }
+  .sheet {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: #fff;
+    padding: 10mm 8mm;
+    border: 1px solid #999;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  td, th {
+    border: 1px solid #000;
+    padding: 2px 4px;
+    vertical-align: middle;
+    font-size: 12px;
+  }
+  .top-meta {
+    border: none;
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+  .top-meta td { border: none; padding: 0; }
+  .title-box {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 8px 0;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 11px;
+    padding-bottom: 4px;
+  }
+  .label-cell {
+    background: #f5f5f5;
+    text-align: center;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+  .vertical-label {
+    background: #f5f5f5;
+    text-align: center;
+    font-weight: bold;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: 2px;
+    padding: 4px 2px;
+  }
+  input[type="text"], input[type="date"] {
+    width: 100%;
+    border: none;
+    font-size: 12px;
+    background: transparent;
+    text-align: center;
+    font-family: inherit;
+    padding: 1px 2px;
+  }
+  input[type="text"]:focus, input[type="date"]:focus {
+    outline: 1px solid #4a90d9;
+    background: #eef6ff;
+  }
+  .left-align input[type="text"] {
+    text-align: left;
+  }
+  .small-note {
+    font-size: 10px;
+    line-height: 1.4;
+  }
+  .checkbox-group label {
+    font-size: 11px;
+    margin-right: 6px;
+    white-space: nowrap;
+  }
+  .checkbox-group input[type="checkbox"] {
+    margin-right: 2px;
+  }
+  .section-title-cell {
+    background: #f5f5f5;
+    text-align: center;
+    font-weight: bold;
+  }
+  .center { text-align: center; }
+  .left { text-align: left; }
+  .declare-box {
+    border: 1px solid #000;
+    padding: 8px;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .seal-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    padding: 10px 0;
+  }
+  .submit-area {
+    text-align: center;
+    margin: 10px 0;
+    font-size: 12px;
+    line-height: 2;
+  }
+  .date-inline input[type="text"] {
+    width: 40px;
+    display: inline-block;
+    border-bottom: 1px solid #000;
+    text-align: center;
+  }
+  .footer-note {
+    font-size: 10px;
+    line-height: 1.6;
+    border: 1px solid #000;
+    padding: 6px;
+    margin-top: 4px;
+  }
+  .receipt-cell {
+    width: 50px;
+    text-align: center;
+    font-weight: bold;
+  }
+  .paper-size-note {
+    text-align: right;
+    font-size: 10px;
+    margin-top: 4px;
+  }
+  .print-btn {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .print-btn button {
+    padding: 6px 16px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .sheet { border: none; }
+    .print-btn { display: none; }
+  }
+  .nowrap { white-space: nowrap; }
+  .small-text { font-size: 10px; }
+</style>
+</head>
+<body>
+
+<div class="print-btn">
+  <button onclick="window.print()">인쇄하기</button>
+</div>
+
+<div class="sheet">
+
+  <!-- 상단 서식명 -->
+  <table class="top-meta">
+    <tr>
+      <td style="width:30%;">[별지 제3호서식]</td>
+      <td style="width:40%; text-align:center;"></td>
+      <td style="width:30%;"></td>
+    </tr>
+  </table>
+
+  <!-- 제목 영역 -->
+  <table>
+    <tr>
+      <td style="width:14%;" class="center">
+        접수번호
+      </td>
+      <td style="width:36%;" class="left-align">
+        <input type="text" name="접수번호">
+      </td>
+      <td style="width:36%; text-align:center; font-size:15px; font-weight:bold; white-space:nowrap;" rowspan="2">
+        사업자등록신청서(개인사업자용)
+      </td>
+      <td style="width:14%;" class="center">
+        처리기간
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" class="small-note left">
+        ※ 아래 해당 사항을 사실대로 작성하시기 바랍니다.
+      </td>
+      <td class="center">7(다)일</td>
+    </tr>
+  </table>
+
+  <!-- 인적사항 -->
+  <table style="margin-top:-1px;">
+    <colgroup>
+      <col style="width:5%;">
+      <col style="width:13%;">
+      <col style="width:32%;">
+      <col style="width:13%;">
+      <col style="width:37%;">
+    </colgroup>
+    <tr>
+      <td rowspan="5" class="vertical-label">인<br>적<br>사<br>항</td>
+      <td class="label-cell">상호(단체명)</td>
+      <td class="left-align"><input type="text" name="상호"></td>
+      <td class="label-cell">전화번호</td>
+      <td>
+        <table style="border:none; width:100%;">
+          <tr>
+            <td style="border:none; width:40%;" class="label-cell">(사업장)</td>
+            <td style="border:none;" class="left-align"><input type="text" name="전화번호_사업장"></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td class="label-cell">성명(대표자)</td>
+      <td class="left-align"><input type="text" name="성명"></td>
+      <td rowspan="2" class="label-cell">(자택)</td>
+      <td rowspan="2" class="left-align"><input type="text" name="전화번호_자택"></td>
+    </tr>
+    <tr>
+      <td class="label-cell">주민등록번호</td>
+      <td class="left-align"><input type="text" name="주민등록번호_대표자"></td>
+    </tr>
+    <tr>
+      <td class="label-cell">사업장(단체) 소재지</td>
+      <td class="left-align"><input type="text" name="사업장소재지"></td>
+      <td class="label-cell">(휴대전화)</td>
+      <td class="left-align"><input type="text" name="전화번호_휴대"></td>
+    </tr>
+    <tr>
+      <td class="label-cell">E-Mail 주소</td>
+      <td class="left-align"><input type="text" name="이메일"></td>
+      <td class="label-cell">국세정보 문자수신<br><span class="small-text">(동의함, 동의안함)</span></td>
+      <td class="left-align"><input type="text" name="국세정보문자수신"></td>
+    </tr>
+  </table>
+
+  <!-- 사업장 현황 -->
+  <table style="margin-top:-1px;">
+    <colgroup>
+      <col style="width:5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+    </colgroup>
+
+    <!-- 사업의 종류 -->
+    <tr>
+      <td rowspan="9" class="vertical-label">사<br>업<br>장<br>현<br>황</td>
+      <td colspan="9" class="label-cell">사 업 의 종 류</td>
+    </tr>
+    <tr>
+      <td rowspan="2" class="label-cell">업태</td>
+      <td rowspan="2" class="label-cell">종목</td>
+      <td rowspan="2" class="label-cell">주업종코드</td>
+      <td rowspan="2" class="label-cell">부업태</td>
+      <td rowspan="2" class="label-cell">부종목</td>
+      <td rowspan="2" class="label-cell">부업종코드</td>
+      <td colspan="2" class="label-cell">개업일</td>
+      <td rowspan="2" class="label-cell">종업원수</td>
+    </tr>
+    <tr>
+      <td colspan="2" class="center"><input type="text" name="개업일"></td>
+    </tr>
+    <tr>
+      <td class="left-align"><input type="text" name="업태"></td>
+      <td class="left-align"><input type="text" name="종목"></td>
+      <td class="left-align"><input type="text" name="주업종코드"></td>
+      <td class="left-align"><input type="text" name="부업태"></td>
+      <td class="left-align"><input type="text" name="부종목"></td>
+      <td class="left-align"><input type="text" name="부업종코드"></td>
+      <td colspan="2" class="left-align"><input type="text" name="개업일2"></td>
+      <td class="left-align"><input type="text" name="종업원수"></td>
+    </tr>
+
+    <!-- 사업장 구분 -->
+    <tr>
+      <td colspan="2" class="label-cell">사업장 구분</td>
+      <td colspan="5" class="label-cell">사업장을 빌려준 사람(임대인)</td>
+      <td colspan="2" class="label-cell">사업장 사용내용</td>
+    </tr>
+    <tr>
+      <td class="label-cell">자가</td>
+      <td class="label-cell">타가</td>
+      <td class="label-cell">성 명<br>(법인명)</td>
+      <td colspan="2" class="label-cell">사업자등록번호</td>
+      <td colspan="2" class="label-cell">주민(법인)등록번호</td>
+      <td class="label-cell">전세/보증금</td>
+      <td class="label-cell">월세</td>
+    </tr>
+    <tr>
+      <td class="center"><input type="text" name="자가"></td>
+      <td class="center"><input type="text" name="타가"></td>
+      <td class="left-align"><input type="text" name="임대인성명"></td>
+      <td colspan="2" class="left-align"><input type="text" name="임대인사업자등록번호"></td>
+      <td colspan="2" class="left-align"><input type="text" name="임대인주민등록번호"></td>
+      <td class="left-align"><input type="text" name="전세보증금"></td>
+      <td class="left-align"><input type="text" name="월세"></td>
+    </tr>
+    <tr>
+      <td colspan="9" class="label-cell">사업장을 임차한 면적</td>
+    </tr>
+    <tr>
+      <td colspan="9" class="left-align" style="height:24px;"><input type="text" name="임차면적"></td>
+    </tr>
+
+    <!-- 사업자 단위 과세 적용신고 여부 / 공동사업자 -->
+    <tr>
+      <td colspan="3" class="label-cell">사업자 단위 과세<br>적용신고 여부</td>
+      <td colspan="3" class="label-cell">사업자 단위 과세 적용 사업자의<br>종된 사업장 신고</td>
+      <td colspan="3" class="label-cell">공동사업자 여부</td>
+    </tr>
+    <tr>
+      <td colspan="3" class="center">
+        <span class="checkbox-group">
+          <label><input type="checkbox" name="단위과세_여">여</label>
+          <label><input type="checkbox" name="단위과세_부">부</label>
+        </span>
+      </td>
+      <td colspan="3" class="center">
+        <span class="checkbox-group">
+          <label><input type="checkbox" name="종된사업장_여">여</label>
+          <label><input type="checkbox" name="종된사업장_부">부</label>
+        </span>
+      </td>
+      <td colspan="3" class="center">
+        <span class="checkbox-group">
+          <label><input type="checkbox" name="공동사업자_여">여</label>
+          <label><input type="checkbox" name="공동사업자_부">부</label>
+        </span>
+      </td>
+    </tr>
+  </table>
+
+  <!-- 사업자 내역 (전자상거래 / 통신판매 / 허가신고 등) -->
+  <table style="margin-top:-1px;">
+    <colgroup>
+      <col style="width:5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+      <col style="width:9.5%;">
+    </colgroup>
+    <tr>
+      <td colspan="10" class="label-cell">사업자 내역 (전자상거래·통신판매업 등 포함)</td>
+    </tr>
+    <tr>
+      <td class="label-cell">허가</td>
+      <td class="label-cell">신고</td>
+      <td colspan="2" class="label-cell">등록</td>
+      <td class="label-cell" colspan="2">허가(등록)관청</td>
+      <td colspan="2" class="label-cell">면허번호</td>
+      <td colspan="2" class="label-cell">면허신청</td>
+    </tr>
+    <tr>
+      <td class="center">
+        <span class="checkbox-group"><input type="checkbox" name="허가"></span>
+      </td>
+      <td class="center">
+        <span class="checkbox-group"><input type="checkbox" name="신고"></span>
+      </td>
+      <td colspan="2" class="center">
+        <span class="checkbox-group"><input type="checkbox" name="등록"></span>
+      </td>
+      <td colspan="2" class="left-align"><input type="text" name="허가등록관청"></td>
+      <td colspan="2" class="left-align"><input type="text" name="면허번호"></td>
+      <td colspan="2" class="center">
+        <span class="checkbox-group">
+          <label><input type="checkbox" name="면허신청_여">여</label>
+          <label><input type="checkbox" name="면허신청_부">부</label>
+        </span>
+      </td>
+    </tr>
+
+    <!-- 개별소비세 -->
+    <tr>
+      <td colspan="2" class="label-cell">개별소비세</td>
+      <td colspan="2" class="label-cell">제조</td>
+      <td colspan="2" class="label-cell">판매</td>
+      <td colspan="2" class="label-cell">입장</td>
+      <td colspan="2" class="label-cell">유흥</td>
+    </tr>
+    <tr>
+      <td colspan="2" class="center">&nbsp;</td>
+      <td colspan="2" class="center">
+        <span class="checkbox-group"><input type="checkbox" name="개소세_제조"></span>
+      </td>
+      <td colspan="2" class="center">
+        <span class="checkbox-group"><input type="checkbox" name="개소세_판매"></span>
+      </td>
+      <td colspan="2" class="center">
+        <span class="checkbox-group"><input type="checkbox" name="개소세_입장"></span>
+      </td>
+      <td colspan="2" class="center">
+        <span class="checkbox-group"><input type="checkbox" name="개소세_유흥"></span>
+      </td>
+    </tr>
+
+    <!-- 사업자금 내역 -->
+    <tr>
+      <td rowspan="2" class="vertical-label">사<br>업<br>자<br>금</td>
+      <td colspan="3" class="label-cell">자기자금</td>
+      <td colspan="3" class="label-cell">타인자금</td>
+      <td colspan="3" class="label-cell">&nbsp;</td>
+    </tr>
+    <tr>
+      <td colspan="3" class="left-align"><input type="text" name="자기자금"></td>
+      <td colspan="3" class="left-align"><input type="text" name="타인자금"></td>
+      <td colspan="3">&nbsp;</td>
+    </tr>
+
+    <!-- 사업장 정보 추가제공 동의 -->
+    <tr>
+      <td colspan="10" class="label-cell">
+        사업장 정보 추가제공 (타사업장 면적, 위생업 면허번호, 면허신청번호 등)
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" class="label-cell">타 사업장 면적</td>
+      <td colspan="2" class="left-align"><input type="text" name="타사업장면적"></td>
+      <td colspan="2" class="label-cell">면허번호</td>
+      <td colspan="2" class="left-align"><input type="text" name="추가면허번호"></td>
+      <td colspan="2" class="label-cell">면허신청번호</td>
+    </tr>
+    <tr>
+      <td colspan="9" class="left-align"><input type="text" name="면허신청번호"></td>
+      <td class="center">
+        <span class="checkbox-group">
+          <label><input type="checkbox" name="추가면허_여">여</label>
+          <label><input type="checkbox" name="추가면허_부">부</label>
+        </span>
+      </td>
+    </tr>
+  </table>
+
+  <!-- 공동사업자 정보 -->
+  <table style="margin-top:-1px;">
+    <colgroup>
+      <col style="width:5%;">
+      <col style="width:11.875%;">
+      <col style="width:11.875%;">
+      <col style="width:11.875%;">
+      <col style="width:11.875%;">
+      <col style="width:11.875%;">
+      <col style="width:11.875%;">
+      <col style="width:11.875%;">
+      <col style="width:11.875%;">
+    </colgroup>
+    <tr>
+      <td rowspan="4" class="vertical-label">공<br>동<br>사<br>업<br>자</td>
+      <td colspan="2" class="label-cell">출자금</td>
+      <td colspan="2" class="label-cell">분 배</td>
+      <td colspan="2" class="label-cell">장 소</td>
+      <td colspan="2" class="label-cell">유 흥</td>
+    </tr>
+    <tr>
+      <td colspan="2" class="left-align"><input type="text" name="출자금"></td>
+      <td colspan="2" class="left-align"><input type="text" name="분배"></td>
+      <td colspan="2" class="left-align"><input type="text" name="장소"></td>
+      <td colspan="2" class="left-align"><input type="text" name="유흥장소"></td>
+    </tr>
+    <tr>
+      <td class="label-cell">성 명</td>
+      <td class="label-cell">주민등록번호</td>
+      <td class="label-cell">지분율</td>
+      <td class="label-cell">관계</td>
+      <td class="label-cell">성 명</td>
+      <td class="label-cell">주민등록번호</td>
+      <td class="label-cell">지분율</td>
+      <td class="label-cell">관계</td>
+    </tr>
+    <tr>
+      <td class="left-align"><input type="text" name="공동대표1_성명"></td>
+      <td class="left-align"><input type="text" name="공동대표1_주민등록번호"></td>
+      <td class="left-align"><input type="text" name="공동대표1_지분율"></td>
+      <td class="left-align"><input type="text" name="공동대표1_관계"></td>
+      <td class="left-align"><input type="text" name="공동대표2_성명"></td>
+      <td class="left-align"><input type="text" name="공동대표2_주민등록번호"></td>
+      <td class="left-align"><input type="text" name="공동대표2_지분율"></td>
+      <td class="left-align"><input type="text" name="공동대표2_관계"></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td class="left-align"><input type="text" name="공동대표3_성명"></td>
+      <td class="left-align"><input type="text" name="공동대표3_주민등록번호"></td>
+      <td class="left-align"><input type="text" name="공동대표3_지분율"></td>
+      <td class="left-align"><input type="text" name="공동대표3_관계"></td>
+      <td class="left-align"><input type="text" name="공동대표4_성명"></td>
+      <td class="left-align"><input type="text" name="공동대표4_주민등록번호"></td>
+      <td class="left-align"><input type="text" name="공동대표4_지분율"></td>
+      <td class="left-align"><input type="text" name="공동대표4_관계"></td>
+    </tr>
+  </table>
+
+  <!-- 신청 안내문 -->
+  <div class="declare-box" style="margin-top:-1px; border-top:none;">
+    부가가치세법 제5조제1항·제5조제3항 및 동법시행령 제7조제1항·제74조제4항의 규정에 의하여
+    위와 같이 사업자등록(<label><input type="checkbox" name="신청구분_확정"> 일반과세자 / <input type="checkbox" name="신청구분_간이"> 간이과세자)</label> 등을 신청합니다.
+  </div>
+
+  <!-- 신청일자 / 신청인 -->
+  <table style="margin-top:0;">
+    <tr>
+      <td colspan="3" class="center" style="border:none; padding-top:14px;">
+        <span class="date-inline">
+          20<input type="text" name="신청년도"> 년
+          <input type="text" name="신청월"> 월
+          <input type="text" name="신청일"> 일
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td style="border:none; width:30%;"></td>
+      <td style="border:none; width:40%; text-align:center; white-space:nowrap;">
+        신청인 <input type="text" name="신청인성명" style="width:120px; display:inline-block; border-bottom:1px solid #000;"> (서명 또는 인)
+      </td>
+      <td style="border:none; width:30%;"></td>
+    </tr>
+  </table>
+
+  <!-- 세무서장 귀하 -->
+  <div class="seal-title">세 무 서 장 귀 하</div>
+
+  <!-- 구비서류 / 수수료 -->
+  <table style="margin-top:-1px;">
+    <colgroup>
+      <col style="width:88%;">
+      <col style="width:12%;">
+    </colgroup>
+    <tr>
+      <td rowspan="3" class="left" style="vertical-align:top;">
+        <strong>※구비서류</strong><br>
+        1. 사업허가증·등록증 또는 신고확인증 사본(허가, 등록, 신고가 필요한 사업인 경우) 1부<br>
+        2. 임대차계약서 사본(사업장을 임차한 경우만 제출) 1부<br>
+        &nbsp;
+      </td>
+      <td class="label-cell" style="vertical-align:top;">수수료</td>
+    </tr>
+    <tr>
+      <td class="center" style="vertical-align:middle;">없음</td>
+    </tr>
+    <tr>
+      <td></td>
+    </tr>
+  </table>
+
+  <!-- 하단 안내 -->
+  <div class="footer-note">
+    유의사항 : 본인이 직업장의 사업자등록을 위하여 작성한 자료가 변경되는 경우, 변경 시점에 다시 작성하여 제출하시기 바랍니다.<br>
+    또한 본인 명의로 발급받은 사업자등록증을 타인에게 대여하여 별도 사업자등록증 명의 위·변경 또는 명의 도용으로 인한 사업자 명의의 불법적인 사용을 한 경우, 조세범처벌법 등의 관련 법령에 따라 처벌받을 수 있습니다.
+  </div>
+
+  <div class="paper-size-note">210mm×297mm[백상지 60g/m²]</div>
+
+</div>
+
+</body>
+</html>
