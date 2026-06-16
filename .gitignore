@@ -79,6 +79,14 @@ fabric.properties
 
 ### Python
 __pycache__/
+*.py[cod]
+*.pyz
+
+### PyInstaller build artifacts
+build/
+dist/
+*.exe
+*.spec
 
 ### Example user template template
 ### Example user template
