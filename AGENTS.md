@@ -225,18 +225,20 @@ chardet      # 파일 인코딩 자동 감지
 faker        # 가상 데이터 생성 (Faker('ko_KR'))
 ```
 
-설치 (conda base 환경):
+설치 (conda 우선):
 ```powershell
-pip install -r requirements.txt
+# 신규 환경 생성 (권장)
+conda env create -f environment.yml
+conda activate ai-champion
+
+# 기존 base 환경에 추가 설치
+conda install --file requirements.txt
+
+# conda에 없는 패키지에 한해 pip 사용
+pip install <패키지명>
 ```
 
-또는 conda로 직접 설치:
-```powershell
-conda activate base
-pip install -r requirements.txt
-```
-
-Python 3.7+ 필요. 노트북 내 누락 패키지는 `ensure_package()`로 인라인 설치.
+Python 3.13 사용. 노트북 내 누락 패키지는 `ensure_package()`로 인라인 설치.
 
 ---
 
