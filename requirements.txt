@@ -1,8 +1,13 @@
-PyMuPDF #fitz
-pandas
-numpy
-
-streamlit
-seaborn
-matplotlib
-python-docx
+PyMuPDF>=1.27.2       # fitz — PDF 파싱, 표 감지
+pandas>=2.3.3
+numpy>=2.3.5
+streamlit>=1.51.0
+seaborn>=0.13.2
+matplotlib>=3.10.6
+python-docx>=1.2.0
+openpyxl>=3.1.5       # xlsx 읽기/쓰기 (pandas 의존성)
+scikit-learn>=1.7.2   # 머신러닝 (지도학습, 모델 평가)
+folium>=0.20.0        # 지도 시각화 (히트맵)
+chardet>=5.2.0        # 파일 인코딩 자동 감지
+Faker>=40.1.2         # 가상 데이터 생성 (Faker('ko_KR'))
+pyinstaller>=6.20.0   # GUI 앱 EXE 배포 (file_manager, news_reader)
