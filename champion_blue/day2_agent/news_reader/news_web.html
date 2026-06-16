@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>🇰🇷 정책브리핑 뉴스 리더</title>
+<style>
+/* ════════════════════════════════════════
+   Reset & Base
+   ════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:       #0d1117;
+  --surface:  #161b22;
+  --card:     #1c2128;
+  --hover:    #252d38;
+  --border:   #30363d;
+  --text:     #e6edf3;
+  --muted:    #8b949e;
+  --dim:      #3d444d;
+  --accent:   #2f81f7;
+  --green:    #3fb950;
+  --orange:   #d29922;
+  --purple:   #bc8cff;
+  --teal:     #39c5cf;
+
+  --cat-policy: #2f81f7;
+  --cat-press:  #3fb950;
+  --cat-report: #bc8cff;
+  --cat-column: #d29922;
+
+  --radius:   14px;
+  --shadow:   0 4px 24px rgba(0,0,0,.45);
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ════════════════════════════════════════
+   Header / Hero
+   ════════════════════════════════════════ */
+.hero {
+  background: linear-gradient(135deg,#090d14 0%,#0d1b33 55%,#0f2d4a 100%);
+  padding: 40px 32px 32px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -60px; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 300px;
+  background: radial-gradient(circle, rgba(47,129,247,.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-flag { font-size: 42px; display: block; margin-bottom: 12px; }
+.hero h1 {
+  font-size: clamp(20px,3vw,30px);
+  font-weight: 800;
+  background: linear-gradient(90deg, #58a6ff, #2f81f7, #79c0ff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -.5px;
+}
+.hero-sub {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--dim);
+}
+.hero-badges {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.badge {
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+/* ════════════════════════════════════════
+   Toolbar
+   ════════════════════════════════════════ */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(13,17,23,.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.search-wrap {
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 12px;
+  transition: border-color .2s;
+}
+.search-wrap:focus-within { border-color: var(--accent); }
+.search-wrap .icon { font-size: 15px; color: var(--muted); }
+#searchInput {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 8px;
+}
+#searchInput::placeholder { color: var(--dim); }
+.clear-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  line-height: 1;
+  transition: color .15s;
+}
+.clear-btn:hover { color: var(--text); }
+.refresh-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+  white-space: nowrap;
+}
+.refresh-btn:hover  { background: #388bfd; }
+.refresh-btn:active { transform: scale(.97); }
+.refresh-btn.loading { opacity: .7; cursor: not-allowed; }
+.spin { display: inline-block; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ════════════════════════════════════════
+   Category Filter
+   ════════════════════════════════════════ */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  padding: 14px 24px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.cat-btn {
+  padding: 7px 16px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .18s;
+}
+.cat-btn:hover { border-color: var(--accent); color: var(--accent); }
+.cat-btn.active {
+  color: #000;
+  border-color: transparent;
+}
+
+/* ════════════════════════════════════════
+   Main Content
+   ════════════════════════════════════════ */
+.main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+/* ════════════════════════════════════════
+   Card Grid
+   ════════════════════════════════════════ */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 18px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 18px 16px;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease,
+              background .18s ease, border-color .18s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  border-top: 3px solid var(--cat-color, var(--accent));
+  animation: fadeUp .35s ease both;
+}
+.card:hover {
+  background: var(--hover);
+  border-color: var(--cat-color, var(--accent));
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0);    }
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 100%;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,.03) 0%,
+    transparent 50%);
+  pointer-events: none;
+}
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cat-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: var(--cat-color, var(--accent));
+  color: #000;
+  white-space: nowrap;
+}
+.card-date {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-title .highlight {
+  background: rgba(47,129,247,.3);
+  border-radius: 3px;
+  padding: 0 2px;
+}
+.card-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0 -18px;
+}
+.card-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.65;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+.card-desc .highlight {
+  background: rgba(47,129,247,.25);
+  border-radius: 3px;
+  padding: 0 2px;
+  color: var(--text);
+}
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.open-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--cat-color, var(--accent));
+  color: #000;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 8px;
+  transition: opacity .15s;
+  text-decoration: none;
+}
+.open-link:hover { opacity: .85; }
+
+/* ════════════════════════════════════════
+   States
+   ════════════════════════════════════════ */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px,1fr));
+  gap: 18px;
+}
+.skeleton-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 18px;
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sk {
+  border-radius: 6px;
+  background: linear-gradient(90deg,
+    var(--surface) 25%, var(--hover) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.sk-top { height: 20px; width: 35%; }
+.sk-title { height: 18px; width: 88%; }
+.sk-title2 { height: 18px; width: 65%; }
+.sk-line { height: 13px; width: 100%; }
+.sk-line2 { height: 13px; width: 80%; }
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--muted);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; display: block; }
+.empty-state h3 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
+.empty-state p  { font-size: 14px; }
+
+/* ════════════════════════════════════════
+   Stats bar
+   ════════════════════════════════════════ */
+.stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.stats-count {
+  font-size: 13px;
+  color: var(--muted);
+}
+.stats-count strong { color: var(--text); }
+.sort-row { display: flex; gap: 6px; }
+.sort-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s;
+}
+.sort-btn.active, .sort-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ════════════════════════════════════════
+   Status footer
+   ════════════════════════════════════════ */
+.footer {
+  position: sticky;
+  bottom: 0;
+  background: rgba(9,13,20,.92);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border);
+  padding: 8px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.footer a { color: var(--accent); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+
+/* ════════════════════════════════════════
+   Dark / Light toggle
+   ════════════════════════════════════════ */
+.theme-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all .15s;
+}
+.theme-btn:hover { border-color: var(--accent); }
+
+/* Light mode */
+body.light {
+  --bg: #f6f8fa; --surface: #ffffff; --card: #ffffff;
+  --hover: #f0f3f6; --border: #d0d7de; --text: #1f2328;
+  --muted: #656d76; --dim: #9ba3ab;
+}
+body.light .hero {
+  background: linear-gradient(135deg,#ddf4ff 0%,#e8f4fd 50%,#f0f8ff 100%);
+}
+body.light .toolbar {
+  background: rgba(246,248,250,.92);
+}
+body.light .footer {
+  background: rgba(246,248,250,.92);
+}
+
+/* ════════════════════════════════════════
+   Responsive
+   ════════════════════════════════════════ */
+@media (max-width: 600px) {
+  .grid { grid-template-columns: 1fr; }
+  .hero { padding: 28px 16px 20px; }
+  .toolbar { padding: 10px 14px; }
+  .main { padding: 16px 12px 60px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Hero ────────────────────────────────────────────────────── -->
+<div class="hero">
+  <span class="hero-flag">🇰🇷</span>
+  <h1>대한민국 정책브리핑 뉴스 리더</h1>
+  <p class="hero-sub">korea.kr 공식 RSS 피드 &nbsp;|&nbsp; 실시간 정책 뉴스</p>
+  <div class="hero-badges">
+    <span class="badge" style="border-color:#2f81f7;color:#2f81f7">📰 정책뉴스</span>
+    <span class="badge" style="border-color:#3fb950;color:#3fb950">📋 보도자료</span>
+    <span class="badge" style="border-color:#bc8cff;color:#bc8cff">✍️ 오피니언</span>
+    <span class="badge" style="border-color:#d29922;color:#d29922">📌 칼럼</span>
+  </div>
+</div>
+
+<!-- ── Toolbar ──────────────────────────────────────────────────── -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="icon">🔍</span>
+    <input id="searchInput" type="text" placeholder="키워드 검색…">
+    <button class="clear-btn" id="clearBtn" title="지우기">✕</button>
+  </div>
+  <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">
+    <span id="refreshIcon">🔄</span> 새로고침
+  </button>
+  <button class="theme-btn" onclick="toggleTheme()" title="다크/라이트 전환">🌙</button>
+</div>
+
+<!-- ── Category Filter ──────────────────────────────────────────── -->
+<div class="filter-bar" id="filterBar">
+  <button class="cat-btn active" data-cat="전체"
+          style="--cat-color:#2f81f7;background:#2f81f7;color:#000"
+          onclick="setCategory('전체',this)">전체</button>
+  <button class="cat-btn" data-cat="정책뉴스"
+          style="--c:#2f81f7" onclick="setCategory('정책뉴스',this)">📰 정책뉴스</button>
+  <button class="cat-btn" data-cat="보도자료"
+          style="--c:#3fb950" onclick="setCategory('보도자료',this)">📋 보도자료</button>
+  <button class="cat-btn" data-cat="오피니언"
+          style="--c:#bc8cff" onclick="setCategory('오피니언',this)">✍️ 오피니언</button>
+  <button class="cat-btn" data-cat="칼럼"
+          style="--c:#d29922" onclick="setCategory('칼럼',this)">📌 칼럼</button>
+</div>
+
+<!-- ── Main ─────────────────────────────────────────────────────── -->
+<div class="main">
+  <div class="stats-bar">
+    <div class="stats-count" id="statsCount">로딩 중…</div>
+    <div class="sort-row">
+      <button class="sort-btn active" id="sort-date" onclick="setSort('date')">최신순</button>
+      <button class="sort-btn"        id="sort-title" onclick="setSort('title')">제목순</button>
+    </div>
+  </div>
+
+  <div id="newsGrid" class="grid"></div>
+</div>
+
+<!-- ── Footer ───────────────────────────────────────────────────── -->
+<div class="footer">
+  <span id="footerStatus">준비 중…</span>
+  <span>데이터 출처: <a href="https://www.korea.kr/etc/rss.do" target="_blank">대한민국 정책브리핑 korea.kr</a></span>
+</div>
+
+<script>
+// ── 상수 ────────────────────────────────────────────────────────
+const FEEDS = [
+  { label: '정책뉴스', url: 'https://www.korea.kr/rss/policy.xml',      color: '#2f81f7' },
+  { label: '보도자료', url: 'https://www.korea.kr/rss/pressrelease.xml', color: '#3fb950' },
+  { label: '오피니언', url: 'https://www.korea.kr/rss/reporter.xml',     color: '#bc8cff' },
+  { label: '칼럼',    url: 'https://www.korea.kr/rss/column.xml',        color: '#d29922' },
+];
+const PROXY = 'https://api.allorigins.win/raw?url=';
+
+// ── 상태 ────────────────────────────────────────────────────────
+let allNews      = [];
+let currentCat   = '전체';
+let currentSort  = 'date';
+let searchTimer  = null;
+let isLoading    = false;
+
+// ── 초기화 ──────────────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(render, 260);
+});
+document.getElementById('clearBtn').addEventListener('click', () => {
+  document.getElementById('searchInput').value = '';
+  render();
+});
+
+// ── RSS 로드 ────────────────────────────────────────────────────
+async function loadAll() {
+  if (isLoading) return;
+  isLoading = true;
+  setRefreshState(true);
+  showSkeleton();
+  allNews = [];
+
+  const promises = FEEDS.map(f => fetchFeed(f));
+  const results  = await Promise.allSettled(promises);
+
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') allNews.push(...r.value);
+  });
+
+  sortNews();
+  updateFilterCounts();
+  render();
+  setRefreshState(false);
+  isLoading = false;
+  document.getElementById('footerStatus').textContent =
+    `마지막 업데이트: ${new Date().toLocaleTimeString('ko-KR')}  |  총 ${allNews.length}개`;
+}
+
+async function fetchFeed(feed) {
+  // 직접 접근 먼저 시도 → 실패시 CORS 프록시
+  let xml;
+  try {
+    const r = await fetch(feed.url, { cache: 'no-cache' });
+    if (!r.ok) throw new Error(`${r.status}`);
+    xml = await r.text();
+  } catch {
+    const r2 = await fetch(PROXY + encodeURIComponent(feed.url));
+    if (!r2.ok) throw new Error('proxy failed');
+    xml = await r2.text();
+  }
+  return parseRSS(xml, feed.label, feed.color);
+}
+
+function parseRSS(xmlStr, label, color) {
+  const parser = new DOMParser();
+  const doc    = parser.parseFromString(xmlStr, 'text/xml');
+  const items  = doc.querySelectorAll('item');
+  const result = [];
+  items.forEach(it => {
+    const g = t => it.querySelector(t)?.textContent?.trim() || '';
+    const desc = stripHtml(g('description'));
+    result.push({
+      title:   stripHtml(g('title')),
+      link:    g('link'),
+      desc:    desc.length > 160 ? desc.slice(0, 160) + '…' : desc,
+      date:    fmtDate(g('pubDate')),
+      rawDate: g('pubDate'),
+      category: label,
+      color:   color,
+    });
+  });
+  return result;
+}
+
+// ── 유틸 ────────────────────────────────────────────────────────
+function stripHtml(s) {
+  const d = document.createElement('div');
+  d.innerHTML = s;
+  return d.textContent || d.innerText || '';
+}
+
+function fmtDate(s) {
+  if (!s) return '';
+  try {
+    const d = new Date(s);
+    if (isNaN(d)) return s.slice(0, 16);
+    return d.toLocaleDateString('ko-KR', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit'
+    });
+  } catch { return s.slice(0, 16); }
+}
+
+function highlight(text, q) {
+  if (!q) return escHtml(text);
+  const re = new RegExp(`(${escRe(q)})`, 'gi');
+  return escHtml(text).replace(re, '<mark class="highlight">$1</mark>');
+}
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+           .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+// ── 정렬 ────────────────────────────────────────────────────────
+function sortNews() {
+  if (currentSort === 'date') {
+    allNews.sort((a,b) => new Date(b.rawDate) - new Date(a.rawDate));
+  } else {
+    allNews.sort((a,b) => a.title.localeCompare(b.title, 'ko'));
+  }
+}
+
+function setSort(mode) {
+  currentSort = mode;
+  document.querySelectorAll('.sort-btn').forEach(b => {
+    b.classList.toggle('active', b.id === 'sort-' + mode);
+  });
+  sortNews();
+  render();
+}
+
+// ── 카테고리 ────────────────────────────────────────────────────
+function setCategory(cat, btn) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => {
+    const bc = b.getAttribute('data-cat');
+    const color = FEEDS.find(f => f.label === bc)?.color || '#2f81f7';
+    b.classList.remove('active');
+    b.style.background = '';
+    b.style.color      = '';
+    b.style.borderColor = '';
+  });
+  btn.classList.add('active');
+  if (cat === '전체') {
+    btn.style.background = '#2f81f7';
+    btn.style.color = '#000';
+  } else {
+    const color = FEEDS.find(f => f.label === cat)?.color || '#2f81f7';
+    btn.style.background = color;
+    btn.style.color = '#000';
+  }
+  render();
+}
+
+function updateFilterCounts() {
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    const cat = btn.getAttribute('data-cat');
+    const cnt = cat === '전체'
+      ? allNews.length
+      : allNews.filter(n => n.category === cat).length;
+    // 버튼 텍스트에서 카테고리명 유지 + 개수 추가
+    const base = btn.textContent.replace(/\s*\(\d+\)$/, '').trim();
+    btn.textContent = `${base} (${cnt})`;
+  });
+}
+
+// ── 렌더링 ──────────────────────────────────────────────────────
+function render() {
+  const q   = document.getElementById('searchInput').value.trim().toLowerCase();
+  const cat = currentCat;
+
+  const shown = allNews.filter(n =>
+    (cat === '전체' || n.category === cat) &&
+    (!q || n.title.toLowerCase().includes(q) || n.desc.toLowerCase().includes(q))
+  );
+
+  const grid = document.getElementById('newsGrid');
+  grid.innerHTML = '';
+
+  if (shown.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <span class="icon">😕</span>
+        <h3>검색 결과가 없습니다</h3>
+        <p>"${q || cat}"에 해당하는 뉴스를 찾을 수 없어요.</p>
+      </div>`;
+  } else {
+    shown.forEach((item, i) => {
+      grid.appendChild(makeCard(item, q, i));
+    });
+  }
+
+  const cntEl = document.getElementById('statsCount');
+  cntEl.innerHTML = q
+    ? `<strong>${shown.length}</strong>개 검색됨 (전체 ${allNews.length}개)`
+    : `<strong>${shown.length}</strong>개 뉴스`;
+}
+
+function makeCard(item, q, idx) {
+  const a = document.createElement('a');
+  a.href   = item.link || '#';
+  a.target = '_blank';
+  a.rel    = 'noopener';
+  a.className = 'card';
+  a.style.cssText = `
+    --cat-color: ${item.color};
+    animation-delay: ${Math.min(idx * 30, 300)}ms;
+  `;
+
+  a.innerHTML = `
+    <div class="card-top">
+      <span class="cat-tag" style="background:${item.color}">${item.category}</span>
+      <span class="card-date">${item.date}</span>
+    </div>
+    <div class="card-title">${highlight(item.title, q)}</div>
+    <div class="card-divider"></div>
+    <div class="card-desc">${highlight(item.desc, q)}</div>
+    <div class="card-footer">
+      <span class="open-link" style="background:${item.color}">
+        기사 보기 &nbsp;↗
+      </span>
+    </div>`;
+
+  return a;
+}
+
+// ── 스켈레톤 ────────────────────────────────────────────────────
+function showSkeleton() {
+  const grid = document.getElementById('newsGrid');
+  grid.innerHTML = Array.from({length: 12}, () => `
+    <div class="skeleton-card">
+      <div class="sk sk-top"></div>
+      <div class="sk sk-title"></div>
+      <div class="sk sk-title2"></div>
+      <div style="height:1px;background:var(--border);margin:4px -18px"></div>
+      <div class="sk sk-line"></div>
+      <div class="sk sk-line2"></div>
+      <div class="sk sk-line"></div>
+    </div>`).join('');
+  document.getElementById('statsCount').textContent = '뉴스를 불러오는 중…';
+}
+
+// ── 새로고침 상태 ────────────────────────────────────────────────
+function setRefreshState(loading) {
+  const btn  = document.getElementById('refreshBtn');
+  const icon = document.getElementById('refreshIcon');
+  if (loading) {
+    btn.classList.add('loading');
+    btn.disabled = true;
+    icon.className = 'spin';
+    icon.textContent = '⏳';
+  } else {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    icon.className = '';
+    icon.textContent = '🔄';
+  }
+}
+
+// ── 테마 전환 ────────────────────────────────────────────────────
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  document.querySelector('.theme-btn').textContent = isLight ? '🌞' : '🌙';
+}
+
+// ── 시작 ────────────────────────────────────────────────────────
+loadAll();
+</script>
+</body>
+</html>

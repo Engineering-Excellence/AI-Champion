@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>공공부문 민원 데이터 분석 대시보드</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Malgun Gothic','맑은 고딕','나눔고딕',NanumGothic,
+    AppleGothic,'Apple SD Gothic Neo',sans-serif;
+  background:#f0f2f5;color:#1a1a2e;font-size:14px;line-height:1.6;
+}
+.hdr{
+  background:linear-gradient(135deg,#1a1a2e 0%,#16213e 55%,#0f3460 100%);
+  color:#fff;padding:22px 32px;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(0,0,0,.4);
+}
+.hdr h1{font-size:20px;font-weight:700;letter-spacing:-.3px}
+.hdr p{font-size:12px;opacity:.7;margin-top:3px}
+.tab-nav{
+  background:#fff;border-bottom:2px solid #e2e8f0;
+  display:flex;gap:0;padding:0 20px;position:sticky;top:68px;z-index:99;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);overflow-x:auto;
+}
+.tab-btn{
+  padding:13px 18px;border:none;background:none;cursor:pointer;
+  font-family:inherit;font-size:13px;font-weight:600;color:#64748b;
+  border-bottom:3px solid transparent;margin-bottom:-2px;
+  transition:all .2s;white-space:nowrap;
+}
+.tab-btn:hover{color:#1a1a2e}
+.tab-btn.active{color:#0f3460;border-bottom-color:#0f3460}
+.page{display:none;padding:22px 22px 48px}
+.page.active{display:block}
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px;margin-bottom:24px}
+.kc{background:#fff;border-radius:12px;padding:18px 14px;
+  box-shadow:0 1px 6px rgba(0,0,0,.08);text-align:center;
+  border-top:4px solid var(--c);transition:transform .15s}
+.kc:hover{transform:translateY(-2px)}
+.kc .val{font-size:26px;font-weight:800;color:var(--c);line-height:1.1}
+.kc .lbl{font-size:11px;color:#64748b;margin-top:5px}
+/* Summary */
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:20px}
+.sc{background:#fff;border-radius:10px;padding:14px 18px;
+  box-shadow:0 1px 6px rgba(0,0,0,.08);border-left:4px solid var(--c)}
+.sc h3{font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px}
+.sc p{font-size:13px;color:#1a1a2e;line-height:1.7}
+/* Charts */
+.cg{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+@media(max-width:860px){.cg{grid-template-columns:1fr}}
+.cc{background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.08);padding:18px}
+.cc.wide{grid-column:1/-1}
+.cc canvas{width:100%!important;display:block}
+.ct{font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:10px;
+  padding-bottom:8px;border-bottom:1px solid #f1f5f9}
+.leg{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;justify-content:center}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:#555}
+.lb{width:13px;height:13px;border-radius:3px;flex-shrink:0}
+/* Tables */
+.tw{background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.08);
+  margin-bottom:18px;overflow:hidden}
+.tt{font-size:13px;font-weight:700;color:#1a1a2e;padding:14px 18px 0}
+.tnote{font-size:11px;color:#94a3b8;padding:3px 18px 0}
+.ts{overflow-x:auto;padding:10px 0 4px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead tr{background:#0f3460;color:#fff}
+thead th{padding:9px 11px;text-align:center;font-weight:600;white-space:nowrap}
+tbody tr{border-bottom:1px solid #f1f5f9;transition:background .1s}
+tbody tr:hover{background:#f8fafc}
+tbody td{padding:8px 11px;text-align:center;color:#374151}
+tbody tr:first-child td{font-weight:600}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <h1>공공부문 민원 데이터 분석 대시보드</h1>
+  <p>데이터 기준 : 2025년 공공기관 민원 접수 현황 &nbsp;|&nbsp; 총 3,000건 &nbsp;|&nbsp; 20개 변수</p>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active"  onclick="showTab('ov',this)">개요</button>
+  <button class="tab-btn"         onclick="showTab('ch1',this)">그래프 01~05</button>
+  <button class="tab-btn"         onclick="showTab('ch2',this)">그래프 06~10</button>
+  <button class="tab-btn"         onclick="showTab('tb1',this)">통계표 01~08</button>
+  <button class="tab-btn"         onclick="showTab('tb2',this)">통계표 09~15</button>
+</nav>
+
+<!-- 개요 -->
+<section id="ov" class="page active">
+  <div class="kpi-grid" id="kpi"></div>
+  <div class="sg" id="sg"></div>
+</section>
+
+<!-- 그래프 01~05 -->
+<section id="ch1" class="page">
+  <div class="cg">
+    <div class="cc"><div class="ct">그래프 01. 기관유형별 민원 건수</div>
+      <canvas id="cv1" height="280"></canvas></div>
+    <div class="cc"><div class="ct">그래프 02. 지역별 민원 건수 (수평 막대)</div>
+      <canvas id="cv2" height="280"></canvas></div>
+    <div class="cc"><div class="ct">그래프 03. 서비스분야별 분포 (파이차트)</div>
+      <canvas id="cv3" height="300"></canvas><div class="leg" id="leg3"></div></div>
+    <div class="cc"><div class="ct">그래프 04. 민원채널별 분포 (도넛차트)</div>
+      <canvas id="cv4" height="300"></canvas><div class="leg" id="leg4"></div></div>
+    <div class="cc wide"><div class="ct">그래프 05. 신청자연령대별 분포</div>
+      <canvas id="cv5" height="260"></canvas></div>
+  </div>
+</section>
+
+<!-- 그래프 06~10 -->
+<section id="ch2" class="page">
+  <div class="cg">
+    <div class="cc wide"><div class="ct">그래프 06. 월별 민원 접수 추이 (꺾은선)</div>
+      <canvas id="cv6" height="260"></canvas></div>
+    <div class="cc"><div class="ct">그래프 07. 만족도 점수 구간별 분포</div>
+      <canvas id="cv7" height="280"></canvas></div>
+    <div class="cc"><div class="ct">그래프 08. 기관유형별 처리기간 비교 (묶음 막대)</div>
+      <canvas id="cv8" height="280"></canvas><div class="leg" id="leg8"></div></div>
+    <div class="cc"><div class="ct">그래프 09. 지연여부 분포 (도넛차트)</div>
+      <canvas id="cv9" height="300"></canvas><div class="leg" id="leg9"></div></div>
+    <div class="cc"><div class="ct">그래프 10. 긴급도별 지연 현황 (누적 막대)</div>
+      <canvas id="cv10" height="280"></canvas><div class="leg" id="leg10"></div></div>
+  </div>
+</section>
+
+<!-- 통계표 01~08 -->
+<section id="tb1" class="page">
+<div class="tw"><div class="tt">표01. 주요 수치형 변수 기술통계 요약</div><p class="tnote">총 3,000건 기준</p><div class="ts"><table><thead><tr><th>항목</th><th>건수</th><th>평균</th><th>표준편차</th><th>최솟값</th><th>Q1</th><th>중앙값</th><th>Q3</th><th>최댓값</th></tr></thead><tbody><tr><td>민원복잡도</td><td>3000</td><td>2.87</td><td>1.04</td><td>1.0</td><td>2.0</td><td>3.0</td><td>4.0</td><td>5.0</td></tr><tr><td>담당인력수</td><td>3000</td><td>3.77</td><td>1.16</td><td>1.0</td><td>3.0</td><td>4.0</td><td>5.0</td><td>8.0</td></tr><tr><td>첨부서류수</td><td>3000</td><td>3.3</td><td>1.71</td><td>0.0</td><td>2.0</td><td>3.0</td><td>4.0</td><td>9.0</td></tr><tr><td>예산관련금액(만원)</td><td>3000</td><td>357.82</td><td>706.75</td><td>0.0</td><td>0.0</td><td>0.0</td><td>507.5</td><td>9370.0</td></tr><tr><td>처리기준일수</td><td>3000</td><td>8.5</td><td>3.53</td><td>2.0</td><td>5.0</td><td>8.0</td><td>10.0</td><td>16.0</td></tr><tr><td>실제처리일수</td><td>3000</td><td>8.17</td><td>4.69</td><td>1.0</td><td>5.0</td><td>8.0</td><td>11.0</td><td>22.0</td></tr><tr><td>재문의횟수</td><td>3000</td><td>1.21</td><td>1.03</td><td>0.0</td><td>0.0</td><td>1.0</td><td>2.0</td><td>5.0</td></tr><tr><td>만족도점수</td><td>3000</td><td>4.26</td><td>0.74</td><td>2.0</td><td>3.7</td><td>4.5</td><td>5.0</td><td>5.0</td></tr><tr><td>행정비용추정(만원)</td><td>3000</td><td>43.9</td><td>15.09</td><td>8.1</td><td>33.0</td><td>42.55</td><td>53.6</td><td>116.2</td></tr></tbody></table></div></div><div class="tw"><div class="tt">표02. 기관유형별 민원 처리 현황</div><div class="ts"><table><thead><tr><th>기관유형</th><th>건수</th><th>비율(%)</th><th>평균만족도</th><th>지연율(%)</th><th>평균처리일수</th><th>평균행정비용(만원)</th></tr></thead><tbody><tr><td>광역지자체</td><td>747</td><td>24.9</td><td>4.25</td><td>34.1</td><td>8.1</td><td>43.4</td></tr><tr><td>기초지자체</td><td>726</td><td>24.2</td><td>4.27</td><td>34.6</td><td>8.0</td><td>43.8</td></tr><tr><td>중앙행정기관</td><td>586</td><td>19.5</td><td>4.24</td><td>36.2</td><td>8.4</td><td>44.9</td></tr><tr><td>공공기관</td><td>552</td><td>18.4</td><td>4.3</td><td>33.9</td><td>8.0</td><td>43.5</td></tr><tr><td>교육청</td><td>389</td><td>13.0</td><td>4.26</td><td>34.4</td><td>8.4</td><td>44.1</td></tr></tbody></table></div></div><div class="tw"><div class="tt">표03. 지역별 민원 현황</div><div class="ts"><table><thead><tr><th>지역</th><th>건수</th><th>비율(%)</th><th>평균만족도</th><th>지연율(%)</th><th>평균처리일수</th><th>평균복잡도</th></tr></thead><tbody><tr><td>전국</td><td>1138</td><td>37.9</td><td>4.27</td><td>35.1</td><td>8.2</td><td>2.88</td></tr><tr><td>수도권</td><td>770</td><td>25.7</td><td>4.25</td><td>35.2</td><td>8.3</td><td>2.88</td></tr><tr><td>호남권</td><td>369</td><td>12.3</td><td>4.26</td><td>33.6</td><td>7.9</td><td>2.81</td></tr><tr><td>영남권</td><td>365</td><td>12.2</td><td>4.28</td><td>32.9</td><td>7.9</td><td>2.85</td></tr><tr><td>충청권</td><td>358</td><td>11.9</td><td>4.24</td><td>34.9</td><td>8.3</td><td>2.87</td></tr></tbody></table></div></div><div class="tw"><div class="tt">표04. 서비스분야별 민원 현황</div><div class="ts"><table><thead><tr><th>서비스분야</th><th>건수</th><th>비율(%)</th><th>평균만족도</th><th>지연율(%)</th><th>평균복잡도</th><th>평균행정비용(만원)</th></tr></thead><tbody><tr><td>복지</td><td>485</td><td>16.2</td><td>4.1</td><td>44.1</td><td>3.27</td><td>49.5</td></tr><tr><td>보건의료</td><td>390</td><td>13.0</td><td>4.31</td><td>33.8</td><td>2.84</td><td>39.6</td></tr><tr><td>교통</td><td>337</td><td>11.2</td><td>4.48</td><td>21.4</td><td>2.19</td><td>31.2</td></tr><tr><td>주거</td><td>310</td><td>10.3</td><td>3.92</td><td>55.2</td><td>3.65</td><td>62.0</td></tr><tr><td>안전</td><td>302</td><td>10.1</td><td>4.47</td><td>22.5</td><td>2.32</td><td>32.4</td></tr><tr><td>세무</td><td>300</td><td>10.0</td><td>4.22</td><td>38.7</td><td>3.0</td><td>46.4</td></tr><tr><td>교육</td><td>282</td><td>9.4</td><td>4.46</td><td>21.3</td><td>2.5</td><td>37.1</td></tr><tr><td>환경</td><td>260</td><td>8.7</td><td>3.99</td><td>48.1</td><td>3.5</td><td>58.9</td></tr><tr><td>일자리</td><td>190</td><td>6.3</td><td>4.36</td><td>29.5</td><td>2.77</td><td>45.8</td></tr><tr><td>문화관광</td><td>144</td><td>4.8</td><td>4.55</td><td>17.4</td><td>2.01</td><td>30.2</td></tr></tbody></table></div></div><div class="tw"><div class="tt">표05. 민원채널별 현황</div><div class="ts"><table><thead><tr><th>민원채널</th><th>건수</th><th>비율(%)</th><th>평균만족도</th><th>지연율(%)</th><th>평균재문의횟수</th><th>평균처리일수</th></tr></thead><tbody><tr><td>온라인</td><td>1162</td><td>38.7</td><td>4.39</td><td>30.4</td><td>1.12</td><td>7.9</td></tr><tr><td>전화</td><td>679</td><td>22.6</td><td>4.09</td><td>39.0</td><td>1.4</td><td>8.7</td></tr><tr><td>방문</td><td>540</td><td>18.0</td><td>4.15</td><td>39.4</td><td>1.23</td><td>8.2</td></tr><tr><td>모바일앱</td><td>514</td><td>17.1</td><td>4.4</td><td>29.4</td><td>1.13</td><td>7.8</td></tr><tr><td>우편</td><td>105</td><td>3.5</td><td>3.92</td><td>54.3</td><td>1.41</td><td>8.9</td></tr></tbody></table></div></div><div class="tw"><div class="tt">표06. 신청자연령대별 현황</div><div class="ts"><table><thead><tr><th>신청자연령대</th><th>건수</th><th>비율(%)</th><th>취약계층비율(%)</th><th>평균만족도</th><th>지연율(%)</th><th>평균재문의횟수</th></tr></thead><tbody><tr><td>20대 이하</td><td>285</td><td>9.5</td><td>11.2</td><td>4.31</td><td>31.9</td><td>1.12</td></tr><tr><td>30대</td><td>581</td><td>19.4</td><td>13.4</td><td>4.27</td><td>32.9</td><td>1.19</td></tr><tr><td>40대</td><td>882</td><td>29.4</td><td>13.6</td><td>4.26</td><td>35.5</td><td>1.17</td></tr><tr><td>50대</td><td>643</td><td>21.4</td><td>10.1</td><td>4.25</td><td>34.7</td><td>1.28</td></tr><tr><td>60대 이상</td><td>609</td><td>20.3</td><td>48.1</td><td>4.25</td><td>36.3</td><td>1.28</td></tr></tbody></table></div></div><div class="tw"><div class="tt">표07. 긴급도별 민원 현황</div><div class="ts"><table><thead><tr><th>긴급도</th><th>건수</th><th>비율(%)</th><th>평균기준일수</th><th>평균실제일수</th><th>지연율(%)</th><th>평균복잡도</th></tr></thead><tbody><tr><td>낮음</td><td>550</td><td>18.3</td><td>10.9</td><td>10.6</td><td>36.7</td><td>2.88</td></tr><tr><td>보통</td><td>1658</td><td>55.3</td><td>8.8</td><td>8.4</td><td>35.3</td><td>2.86</td></tr><tr><td>높음</td><td>586</td><td>19.5</td><td>6.8</td><td>6.5</td><td>34.1</td><td>2.84</td></tr><tr><td>긴급</td><td>206</td><td>6.9</td><td>4.9</td><td>4.5</td><td>25.2</td><td>2.94</td></tr></tbody></table></div></div><div class="tw"><div class="tt">표08. 취약계층 여부별 비교 분석</div><div class="ts"><table><thead><tr><th>구분</th><th>건수</th><th>비율(%)</th><th>평균만족도</th><th>지연율(%)</th><th>평균재문의횟수</th><th>평균처리일수</th><th>평균행정비용(만원)</th></tr></thead><tbody><tr><td>일반</td><td>2412</td><td>80.4</td><td>4.25</td><td>34.8</td><td>1.2</td><td>8.2</td><td>44.0</td></tr><tr><td>취약계층</td><td>588</td><td>19.6</td><td>4.31</td><td>34.0</td><td>1.26</td><td>8.1</td><td>43.3</td></tr></tbody></table></div></div>
+</section>
+
+<!-- 통계표 09~15 -->
+<section id="tb2" class="page">
+<div class="tw"><div class="tt">표09. 월별 민원 접수 현황 (2025년)</div><div class="ts"><table><thead><tr><th>월</th><th>건수</th><th>누적건수</th><th>전월대비</th><th>지연율(%)</th><th>평균만족도</th></tr></thead><tbody><tr><td>1월</td><td>236</td><td>236</td><td>+0</td><td>34.7</td><td>4.25</td></tr><tr><td>2월</td><td>176</td><td>412</td><td>-60</td><td>34.7</td><td>4.22</td></tr><tr><td>3월</td><td>297</td><td>709</td><td>+121</td><td>32.3</td><td>4.26</td></tr><tr><td>4월</td><td>280</td><td>989</td><td>-17</td><td>35.0</td><td>4.26</td></tr><tr><td>5월</td><td>308</td><td>1297</td><td>+28</td><td>35.7</td><td>4.21</td></tr><tr><td>6월</td><td>223</td><td>1520</td><td>-85</td><td>32.3</td><td>4.32</td></tr><tr><td>7월</td><td>246</td><td>1766</td><td>+23</td><td>39.0</td><td>4.21</td></tr><tr><td>8월</td><td>218</td><td>1984</td><td>-28</td><td>37.2</td><td>4.25</td></tr><tr><td>9월</td><td>265</td><td>2249</td><td>+47</td><td>34.0</td><td>4.25</td></tr><tr><td>10월</td><td>283</td><td>2532</td><td>+18</td><td>33.9</td><td>4.31</td></tr><tr><td>11월</td><td>232</td><td>2764</td><td>-51</td><td>34.9</td><td>4.28</td></tr><tr><td>12월</td><td>236</td><td>3000</td><td>+4</td><td>32.2</td><td>4.33</td></tr></tbody></table></div></div><div class="tw"><div class="tt">표10. 기관유형별 처리기간 분석</div><div class="ts"><table><thead><tr><th>기관유형</th><th>건수</th><th>평균기준일수</th><th>평균실제일수</th><th>평균초과일수</th><th>지연율(%)</th><th>최대실제일수</th></tr></thead><tbody><tr><td>중앙행정기관</td><td>586</td><td>8.6</td><td>8.4</td><td>-0.2</td><td>36.2</td><td>22</td></tr><tr><td>기초지자체</td><td>726</td><td>8.4</td><td>8.0</td><td>-0.4</td><td>34.6</td><td>20</td></tr><tr><td>교육청</td><td>389</td><td>8.7</td><td>8.4</td><td>-0.3</td><td>34.4</td><td>22</td></tr><tr><td>광역지자체</td><td>747</td><td>8.5</td><td>8.1</td><td>-0.4</td><td>34.1</td><td>22</td></tr><tr><td>공공기관</td><td>552</td><td>8.4</td><td>8.0</td><td>-0.4</td><td>33.9</td><td>22</td></tr></tbody></table></div></div><div class="tw"><div class="tt">표11. 만족도 구간별 분포</div><div class="ts"><table><thead><tr><th>만족도구간</th><th>건수</th><th>비율(%)</th><th>지연율(%)</th><th>평균재문의횟수</th><th>평균행정비용(만원)</th></tr></thead><tbody><tr><td>1.0~2.0</td><td>0</td><td>0.0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>2.0~3.0</td><td>185</td><td>6.2</td><td>100.0</td><td>2.76</td><td>63.1</td></tr><tr><td>3.0~4.0</td><td>777</td><td>25.9</td><td>93.2</td><td>2.02</td><td>54.0</td></tr><tr><td>4.0~5.0</td><td>2038</td><td>67.9</td><td>6.4</td><td>0.77</td><td>38.3</td></tr></tbody></table></div></div><div class="tw"><div class="tt">표12. 재문의 횟수별 현황 분석</div><div class="ts"><table><thead><tr><th>재문의횟수</th><th>건수</th><th>비율(%)</th><th>평균만족도</th><th>지연율(%)</th><th>평균처리일수</th></tr></thead><tbody><tr><td>0</td><td>854</td><td>28.5</td><td>4.83</td><td>4.8</td><td>6.1</td></tr><tr><td>1</td><td>1067</td><td>35.6</td><td>4.46</td><td>24.0</td><td>7.6</td></tr><tr><td>2</td><td>718</td><td>23.9</td><td>3.84</td><td>59.1</td><td>9.7</td></tr><tr><td>3</td><td>307</td><td>10.2</td><td>3.25</td><td>86.0</td><td>11.4</td></tr><tr><td>4</td><td>51</td><td>1.7</td><td>2.85</td><td>100.0</td><td>13.2</td></tr><tr><td>5</td><td>3</td><td>0.1</td><td>2.6</td><td>100.0</td><td>14.3</td></tr></tbody></table></div></div><div class="tw"><div class="tt">표13. 기관유형 × 서비스분야 교차표</div><div class="ts"><table><thead><tr><th>기관유형</th><th>교육</th><th>교통</th><th>문화관광</th><th>보건의료</th><th>복지</th><th>세무</th><th>안전</th><th>일자리</th><th>주거</th><th>환경</th><th>합계</th></tr></thead><tbody><tr><td>광역지자체</td><td>66</td><td>83</td><td>42</td><td>99</td><td>119</td><td>73</td><td>73</td><td>47</td><td>83</td><td>62</td><td>747</td></tr><tr><td>기초지자체</td><td>73</td><td>83</td><td>35</td><td>87</td><td>112</td><td>79</td><td>79</td><td>48</td><td>63</td><td>67</td><td>726</td></tr><tr><td>중앙행정기관</td><td>61</td><td>60</td><td>17</td><td>78</td><td>101</td><td>57</td><td>58</td><td>37</td><td>65</td><td>52</td><td>586</td></tr><tr><td>공공기관</td><td>50</td><td>62</td><td>35</td><td>82</td><td>99</td><td>49</td><td>51</td><td>34</td><td>51</td><td>39</td><td>552</td></tr><tr><td>교육청</td><td>32</td><td>49</td><td>15</td><td>44</td><td>54</td><td>42</td><td>41</td><td>24</td><td>48</td><td>40</td><td>389</td></tr></tbody></table></div></div><div class="tw"><div class="tt">표14. 지연/비지연 집단 요인 비교 분석</div><div class="ts"><table><thead><tr><th>구분</th><th>건수</th><th>비율(%)</th><th>평균복잡도</th><th>평균인력수</th><th>평균서류수</th><th>평균재문의횟수</th><th>평균만족도</th><th>평균행정비용(만원)</th><th>평균처리일수</th></tr></thead><tbody><tr><td>비지연</td><td>1961</td><td>65.4</td><td>2.58</td><td>3.71</td><td>2.85</td><td>0.78</td><td>4.72</td><td>37.8</td><td>6.2</td></tr><tr><td>지연</td><td>1039</td><td>34.6</td><td>3.41</td><td>3.86</td><td>4.14</td><td>2.04</td><td>3.4</td><td>55.4</td><td>11.9</td></tr></tbody></table></div></div><div class="tw"><div class="tt">표15. 서비스분야별 행정비용 분석</div><div class="ts"><table><thead><tr><th>서비스분야</th><th>건수</th><th>평균비용(만원)</th><th>최솟값(만원)</th><th>최댓값(만원)</th><th>합계비용(만원)</th><th>비율(%)</th></tr></thead><tbody><tr><td>복지</td><td>485</td><td>49.5</td><td>13.4</td><td>87.7</td><td>23996.9</td><td>18.2</td></tr><tr><td>주거</td><td>310</td><td>62.0</td><td>30.0</td><td>116.2</td><td>19217.2</td><td>14.6</td></tr><tr><td>보건의료</td><td>390</td><td>39.6</td><td>15.1</td><td>74.7</td><td>15445.1</td><td>11.7</td></tr><tr><td>환경</td><td>260</td><td>58.9</td><td>27.7</td><td>103.7</td><td>15323.9</td><td>11.6</td></tr><tr><td>세무</td><td>300</td><td>46.4</td><td>22.7</td><td>88.4</td><td>13919.4</td><td>10.6</td></tr><tr><td>교통</td><td>337</td><td>31.2</td><td>8.1</td><td>75.2</td><td>10518.0</td><td>8.0</td></tr><tr><td>교육</td><td>282</td><td>37.1</td><td>11.2</td><td>69.8</td><td>10466.1</td><td>7.9</td></tr><tr><td>안전</td><td>302</td><td>32.4</td><td>13.4</td><td>67.5</td><td>9772.8</td><td>7.4</td></tr><tr><td>일자리</td><td>190</td><td>45.8</td><td>17.5</td><td>86.8</td><td>8700.2</td><td>6.6</td></tr><tr><td>문화관광</td><td>144</td><td>30.2</td><td>10.5</td><td>55.6</td><td>4347.1</td><td>3.3</td></tr></tbody></table></div></div>
+</section>
+
+<script>
+
+const KPI    = {"total": 3000, "delay_rate": 34.6, "avg_sat": 4.26, "avg_cost": 43.9, "avg_proc": 8.2, "vuln_rate": 19.6};
+const CHARTS = {"c1": {"labels": ["광역지자체", "기초지자체", "중앙행정기관", "공공기관", "교육청"], "values": [747, 726, 586, 552, 389]}, "c2": {"labels": ["충청권", "영남권", "호남권", "수도권", "전국"], "values": [358, 365, 369, 770, 1138]}, "c3": {"labels": ["복지", "보건의료", "교통", "주거", "안전", "세무", "교육", "환경", "일자리", "문화관광"], "values": [485, 390, 337, 310, 302, 300, 282, 260, 190, 144]}, "c4": {"labels": ["온라인", "전화", "방문", "모바일앱", "우편"], "values": [1162, 679, 540, 514, 105]}, "c5": {"labels": ["20대 이하", "30대", "40대", "50대", "60대 이상"], "values": [285, 581, 882, 643, 609]}, "c6": {"labels": ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"], "values": [236, 176, 297, 280, 308, 223, 246, 218, 265, 283, 232, 236]}, "c7": {"labels": ["1.0~2.0", "2.0~3.0", "3.0~4.0", "4.0~5.0"], "values": [0, 185, 777, 2038]}, "c8": {"labels": ["광역지자체", "기초지자체", "중앙행정기관", "공공기관", "교육청"], "datasets": [{"label": "기준일수", "values": [8.5, 8.4, 8.6, 8.4, 8.7]}, {"label": "실제일수", "values": [8.1, 8.0, 8.4, 8.0, 8.4]}]}, "c9": {"labels": ["비지연", "지연"], "values": [1961, 1039]}, "c10": {"labels": ["낮음", "보통", "높음", "긴급"], "datasets": [{"label": "비지연", "values": [348, 1073, 386, 154]}, {"label": "지연", "values": [202, 585, 200, 52]}]}};
+
+// ── 탭 전환 ─────────────────────────────────────────────
+function showTab(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='ch1')drawCharts1();
+  if(id==='ch2')drawCharts2();
+}
+
+// ── KPI 초기화 ──────────────────────────────────────────
+(function(){
+  const items=[
+    {l:'총 민원 건수',    v:KPI.total.toLocaleString()+'건', c:'#0f3460'},
+    {l:'평균 만족도',     v:KPI.avg_sat.toFixed(2)+'점',    c:'#e94560'},
+    {l:'지연율',         v:KPI.delay_rate+'%',              c:'#f5a623'},
+    {l:'평균 처리일수',   v:KPI.avg_proc+'일',               c:'#28a745'},
+    {l:'평균 행정비용',   v:KPI.avg_cost.toLocaleString()+'만원',c:'#6f42c1'},
+    {l:'취약계층 비율',   v:KPI.vuln_rate+'%',              c:'#17a2b8'},
+  ];
+  document.getElementById('kpi').innerHTML=items.map(i=>
+    `<div class="kc" style="--c:${i.c}"><div class="val">${i.v}</div><div class="lbl">${i.l}</div></div>`
+  ).join('');
+  document.getElementById('sg').innerHTML=`
+    <div class="sc" style="--c:#0f3460"><h3>데이터 개요</h3>
+      <p>총 3,000건 공공기관 민원 데이터(20개 변수). 5개 기관유형, 5개 지역, 10개 서비스분야 포함.</p></div>
+    <div class="sc" style="--c:#e94560"><h3>만족도 현황</h3>
+      <p>전체 평균 만족도 <strong>${KPI.avg_sat}점</strong>. 서비스분야·채널별 편차 존재.</p></div>
+    <div class="sc" style="--c:#f5a623"><h3>지연 현황</h3>
+      <p>전체 지연율 <strong>${KPI.delay_rate}%</strong>. 처리기준일수 초과 건 다수 발생.</p></div>
+    <div class="sc" style="--c:#28a745"><h3>처리기간</h3>
+      <p>평균 실제 처리일수 <strong>${KPI.avg_proc}일</strong>. 기관유형·긴급도별 차이 발생.</p></div>
+    <div class="sc" style="--c:#6f42c1"><h3>행정비용</h3>
+      <p>평균 행정비용 <strong>${KPI.avg_cost}만원</strong>. 서비스분야별 비용 구조 상이.</p></div>
+    <div class="sc" style="--c:#17a2b8"><h3>취약계층</h3>
+      <p>취약계층 비율 <strong>${KPI.vuln_rate}%</strong>. 일반 대비 지연율·재문의 비교 필요.</p></div>`;
+})();
+
+// ── 색상 ─────────────────────────────────────────────────
+const C1=['#0f3460','#e94560','#f5a623','#28a745','#6f42c1','#17a2b8','#fd7e14','#20c997','#dc3545','#6c757d'];
+const C2=['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ac'];
+
+// ── Canvas 설정 ──────────────────────────────────────────
+function cvSetup(id){
+  const c=document.getElementById(id);
+  const dpr=window.devicePixelRatio||1;
+  const pw=c.parentElement.clientWidth-36;
+  const ph=parseInt(c.getAttribute('height')||300);
+  c.width=pw*dpr; c.height=ph*dpr;
+  c.style.width=pw+'px'; c.style.height=ph+'px';
+  const ctx=c.getContext('2d');
+  ctx.scale(dpr,dpr);
+  return {ctx,w:pw,h:ph};
+}
+
+// ── 둥근 사각형 ──────────────────────────────────────────
+function rr(ctx,x,y,w,h,r){
+  if(h<0){y+=h;h=-h;}
+  if(w<0){x+=w;w=-w;}
+  r=Math.min(r,w/2,h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();ctx.fill();
+}
+
+// ── 수직 막대 ────────────────────────────────────────────
+function drawBar(id,labels,vals,cols){
+  const {ctx,w,h}=cvSetup(id);
+  const p={t:30,r:16,b:68,l:56};
+  const cw=w-p.l-p.r, ch=h-p.t-p.b;
+  const mx=Math.max(...vals)*1.18||1;
+  const gap=cw/labels.length, bw=gap*0.62;
+  ctx.font='11px "Malgun Gothic",sans-serif';
+  for(let i=0;i<=5;i++){
+    const yv=mx/5*i, yp=p.t+ch*(1-yv/mx);
+    ctx.strokeStyle=i===0?'#999':'#eaeaea'; ctx.lineWidth=i===0?1.5:1;
+    ctx.beginPath();ctx.moveTo(p.l,yp);ctx.lineTo(p.l+cw,yp);ctx.stroke();
+    ctx.fillStyle='#777';ctx.textAlign='right';
+    ctx.fillText(Math.round(yv).toLocaleString(),p.l-5,yp+4);
+  }
+  ctx.strokeStyle='#999';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(p.l,p.t);ctx.lineTo(p.l,p.t+ch);ctx.stroke();
+  labels.forEach((lbl,i)=>{
+    const x=p.l+gap*i+(gap-bw)/2;
+    const bh=ch*vals[i]/mx;
+    ctx.fillStyle=cols[i%cols.length];
+    rr(ctx,x,p.t+ch-bh,bw,bh,4);
+    ctx.fillStyle='#222';ctx.textAlign='center';ctx.font='bold 11px "Malgun Gothic",sans-serif';
+    ctx.fillText(vals[i].toLocaleString(),x+bw/2,p.t+ch-bh-5);
+    ctx.save();
+    ctx.translate(x+bw/2,p.t+ch+10);ctx.rotate(-0.42);
+    ctx.textAlign='right';ctx.fillStyle='#444';ctx.font='11px "Malgun Gothic",sans-serif';
+    ctx.fillText(lbl,0,0);ctx.restore();
+  });
+}
+
+// ── 수평 막대 ────────────────────────────────────────────
+function drawHBar(id,labels,vals,cols){
+  const {ctx,w,h}=cvSetup(id);
+  const p={t:14,r:70,b:14,l:78};
+  const cw=w-p.l-p.r, ch=h-p.t-p.b;
+  const mx=Math.max(...vals)*1.15||1;
+  const gap=ch/labels.length, bh=gap*0.62;
+  ctx.strokeStyle='#999';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(p.l,p.t);ctx.lineTo(p.l,p.t+ch);ctx.stroke();
+  labels.forEach((lbl,i)=>{
+    const y=p.t+gap*i+(gap-bh)/2;
+    const bw=cw*vals[i]/mx;
+    ctx.fillStyle=cols[i%cols.length];
+    rr(ctx,p.l,y,bw,bh,4);
+    ctx.fillStyle='#333';ctx.textAlign='right';
+    ctx.font='12px "Malgun Gothic",sans-serif';
+    ctx.fillText(lbl,p.l-7,y+bh/2+4);
+    ctx.fillStyle='#111';ctx.textAlign='left';ctx.font='bold 11px "Malgun Gothic",sans-serif';
+    ctx.fillText(vals[i].toLocaleString(),p.l+bw+5,y+bh/2+4);
+  });
+}
+
+// ── 파이 ─────────────────────────────────────────────────
+function drawPie(id,labels,vals,cols,legId){
+  const {ctx,w,h}=cvSetup(id);
+  const tot=vals.reduce((a,b)=>a+b,0);
+  const cx=w/2,cy=h/2,r=Math.min(w,h)/2-18;
+  let s=-Math.PI/2;
+  vals.forEach((v,i)=>{
+    const sw=2*Math.PI*v/tot;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,s,s+sw);ctx.closePath();
+    ctx.fillStyle=cols[i%cols.length];ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    if(sw>0.18){
+      const m=s+sw/2;
+      ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 11px "Malgun Gothic",sans-serif';
+      ctx.fillText((v/tot*100).toFixed(1)+'%',cx+Math.cos(m)*r*.65,cy+Math.sin(m)*r*.65+4);
+    }
+    s+=sw;
+  });
+  if(legId)mkLeg(legId,labels,cols);
+}
+
+// ── 도넛 ─────────────────────────────────────────────────
+function drawDnt(id,labels,vals,cols,legId){
+  const {ctx,w,h}=cvSetup(id);
+  const tot=vals.reduce((a,b)=>a+b,0);
+  const cx=w/2,cy=h/2,r=Math.min(w,h)/2-18,ir=r*.52;
+  let s=-Math.PI/2;
+  vals.forEach((v,i)=>{
+    const sw=2*Math.PI*v/tot;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,s,s+sw);ctx.closePath();
+    ctx.fillStyle=cols[i%cols.length];ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    if(sw>0.22){
+      const m=s+sw/2;
+      ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 11px "Malgun Gothic",sans-serif';
+      ctx.fillText((v/tot*100).toFixed(1)+'%',cx+Math.cos(m)*r*.73,cy+Math.sin(m)*r*.73+4);
+    }
+    s+=sw;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,ir,0,2*Math.PI);
+  ctx.fillStyle='#fff';ctx.fill();
+  ctx.fillStyle='#1a1a2e';ctx.textAlign='center';
+  ctx.font='bold 15px "Malgun Gothic",sans-serif';
+  ctx.fillText(tot.toLocaleString(),cx,cy-2);
+  ctx.font='11px "Malgun Gothic",sans-serif';ctx.fillStyle='#64748b';
+  ctx.fillText('총 건수',cx,cy+16);
+  if(legId)mkLeg(legId,labels,cols);
+}
+
+// ── 꺾은선 ──────────────────────────────────────────────
+function drawLine(id,labels,vals){
+  const {ctx,w,h}=cvSetup(id);
+  const p={t:30,r:20,b:50,l:58};
+  const cw=w-p.l-p.r, ch=h-p.t-p.b;
+  const mn=Math.min(...vals)*.88, mx=Math.max(...vals)*1.14||1;
+  const rng=mx-mn||1;
+  const yp=v=>p.t+ch*(1-(v-mn)/rng);
+  for(let i=0;i<=5;i++){
+    const v=mn+rng/5*i, y=yp(v);
+    ctx.strokeStyle=i===0?'#999':'#eaeaea';ctx.lineWidth=i===0?1.5:1;
+    ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(p.l+cw,y);ctx.stroke();
+    ctx.fillStyle='#777';ctx.textAlign='right';ctx.font='11px "Malgun Gothic",sans-serif';
+    ctx.fillText(Math.round(v),p.l-5,y+4);
+  }
+  ctx.strokeStyle='#999';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(p.l,p.t);ctx.lineTo(p.l,p.t+ch);ctx.stroke();
+  const pts=labels.map((_,i)=>({x:p.l+cw*i/(labels.length-1),y:yp(vals[i])}));
+  // 채움
+  ctx.beginPath();ctx.moveTo(pts[0].x,p.t+ch);
+  pts.forEach(pt=>ctx.lineTo(pt.x,pt.y));
+  ctx.lineTo(pts[pts.length-1].x,p.t+ch);ctx.closePath();
+  ctx.fillStyle='rgba(15,52,96,.1)';ctx.fill();
+  // 선
+  ctx.beginPath();ctx.strokeStyle='#0f3460';ctx.lineWidth=2.5;ctx.lineJoin='round';
+  pts.forEach((pt,i)=>i===0?ctx.moveTo(pt.x,pt.y):ctx.lineTo(pt.x,pt.y));
+  ctx.stroke();
+  // 점·값·라벨
+  pts.forEach((pt,i)=>{
+    ctx.beginPath();ctx.arc(pt.x,pt.y,4,0,2*Math.PI);
+    ctx.fillStyle='#0f3460';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='#222';ctx.textAlign='center';ctx.font='bold 10px "Malgun Gothic",sans-serif';
+    ctx.fillText(vals[i],pt.x,pt.y-9);
+    ctx.fillStyle='#555';ctx.font='11px "Malgun Gothic",sans-serif';
+    ctx.fillText(labels[i],pt.x,p.t+ch+17);
+  });
+}
+
+// ── 묶음 막대 ────────────────────────────────────────────
+function drawGrp(id,labels,datasets,cols,legId){
+  const {ctx,w,h}=cvSetup(id);
+  const p={t:30,r:16,b:68,l:56};
+  const cw=w-p.l-p.r, ch=h-p.t-p.b;
+  const all=datasets.flatMap(d=>d.values);
+  const mx=Math.max(...all)*1.18||1;
+  const n=datasets.length, gap=cw/labels.length, grpW=gap*.72, bw=grpW/n;
+  for(let i=0;i<=5;i++){
+    const v=mx/5*i, y=p.t+ch*(1-v/mx);
+    ctx.strokeStyle=i===0?'#999':'#eaeaea';ctx.lineWidth=i===0?1.5:1;
+    ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(p.l+cw,y);ctx.stroke();
+    ctx.fillStyle='#777';ctx.textAlign='right';ctx.font='11px "Malgun Gothic",sans-serif';
+    ctx.fillText(v.toFixed(1),p.l-5,y+4);
+  }
+  ctx.strokeStyle='#999';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(p.l,p.t);ctx.lineTo(p.l,p.t+ch);ctx.stroke();
+  labels.forEach((lbl,i)=>{
+    const gx=p.l+gap*i+(gap-grpW)/2;
+    datasets.forEach((ds,j)=>{
+      const x=gx+bw*j, bh=ch*ds.values[i]/mx;
+      ctx.fillStyle=cols[j%cols.length];
+      rr(ctx,x+1,p.t+ch-bh,bw-2,bh,3);
+      ctx.fillStyle='#222';ctx.textAlign='center';ctx.font='10px "Malgun Gothic",sans-serif';
+      ctx.fillText(ds.values[i],x+bw/2,p.t+ch-bh-5);
+    });
+    ctx.save();
+    ctx.translate(p.l+gap*i+gap/2,p.t+ch+10);ctx.rotate(-0.42);
+    ctx.textAlign='right';ctx.fillStyle='#444';ctx.font='11px "Malgun Gothic",sans-serif';
+    ctx.fillText(lbl,0,0);ctx.restore();
+  });
+  if(legId)mkLeg(legId,datasets.map(d=>d.label),cols);
+}
+
+// ── 누적 막대 ────────────────────────────────────────────
+function drawStk(id,labels,datasets,cols,legId){
+  const {ctx,w,h}=cvSetup(id);
+  const p={t:30,r:16,b:60,l:56};
+  const cw=w-p.l-p.r, ch=h-p.t-p.b;
+  const tots=labels.map((_,i)=>datasets.reduce((s,d)=>s+d.values[i],0));
+  const mx=Math.max(...tots)*1.12||1;
+  const gap=cw/labels.length, bw=gap*.62;
+  for(let i=0;i<=5;i++){
+    const v=mx/5*i, y=p.t+ch*(1-v/mx);
+    ctx.strokeStyle=i===0?'#999':'#eaeaea';ctx.lineWidth=i===0?1.5:1;
+    ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(p.l+cw,y);ctx.stroke();
+    ctx.fillStyle='#777';ctx.textAlign='right';ctx.font='11px "Malgun Gothic",sans-serif';
+    ctx.fillText(Math.round(v),p.l-5,y+4);
+  }
+  ctx.strokeStyle='#999';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(p.l,p.t);ctx.lineTo(p.l,p.t+ch);ctx.stroke();
+  labels.forEach((lbl,i)=>{
+    const x=p.l+gap*i+(gap-bw)/2;
+    let cum=0;
+    datasets.forEach((ds,j)=>{
+      const v=ds.values[i], bh=ch*v/mx, y=p.t+ch*(1-(cum+v)/mx);
+      ctx.fillStyle=cols[j%cols.length];
+      ctx.fillRect(x,y,bw,bh);
+      if(bh>14){
+        ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 10px "Malgun Gothic",sans-serif';
+        ctx.fillText(v,x+bw/2,y+bh/2+4);
+      }
+      cum+=v;
+    });
+    const ty=p.t+ch*(1-tots[i]/mx);
+    ctx.fillStyle='#222';ctx.textAlign='center';ctx.font='bold 10px "Malgun Gothic",sans-serif';
+    ctx.fillText(tots[i],x+bw/2,ty-5);
+    ctx.save();
+    ctx.translate(x+bw/2,p.t+ch+10);ctx.rotate(-0.35);
+    ctx.textAlign='right';ctx.fillStyle='#444';ctx.font='11px "Malgun Gothic",sans-serif';
+    ctx.fillText(lbl,0,0);ctx.restore();
+  });
+  if(legId)mkLeg(legId,datasets.map(d=>d.label),cols);
+}
+
+// ── 범례 ─────────────────────────────────────────────────
+function mkLeg(id,labels,cols){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.innerHTML=labels.map((l,i)=>
+    `<div class="li"><div class="lb" style="background:${cols[i%cols.length]}"></div>${l}</div>`
+  ).join('');
+}
+
+// ── 차트 렌더 ────────────────────────────────────────────
+let d1=false,d2=false;
+function drawCharts1(){
+  if(d1)return;d1=true;
+  setTimeout(()=>{
+    drawBar('cv1',CHARTS.c1.labels,CHARTS.c1.values,C1);
+    drawHBar('cv2',CHARTS.c2.labels,CHARTS.c2.values,C2);
+    drawPie('cv3',CHARTS.c3.labels,CHARTS.c3.values,C1,'leg3');
+    drawDnt('cv4',CHARTS.c4.labels,CHARTS.c4.values,C2,'leg4');
+    drawBar('cv5',CHARTS.c5.labels,CHARTS.c5.values,C1);
+  },60);
+}
+function drawCharts2(){
+  if(d2)return;d2=true;
+  setTimeout(()=>{
+    drawLine('cv6',CHARTS.c6.labels,CHARTS.c6.values);
+    drawBar('cv7',CHARTS.c7.labels,CHARTS.c7.values,C2);
+    drawGrp('cv8',CHARTS.c8.labels,CHARTS.c8.datasets,[C1[0],C1[1]],'leg8');
+    drawDnt('cv9',CHARTS.c9.labels,CHARTS.c9.values,['#28a745','#e94560'],'leg9');
+    drawStk('cv10',CHARTS.c10.labels,CHARTS.c10.datasets,['#28a745','#e94560'],'leg10');
+  },60);
+}
+
+</script>
+</body>
+</html>
