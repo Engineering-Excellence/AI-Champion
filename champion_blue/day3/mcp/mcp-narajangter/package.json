@@ -1,0 +1,22 @@
+{
+  "name": "mcp-narajangter",
+  "version": "1.0.0",
+  "description": "나라장터 입찰공고 조회 MCP 서버 - IT 소기업을 위한 공공 입찰 정보 서비스",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "node_modules/.bin/tsc",
+    "start": "node dist/index.js",
+    "dev": "node_modules/.bin/tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.28.0",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3"
+  }
+}
