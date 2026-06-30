@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>지자체 협력사업 신청 현황</title>
+<style>
+  :root { --green:#16a34a; --red:#dc2626; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:"Malgun Gothic","Segoe UI",sans-serif; color:var(--ink); background:#f8fafc; }
+  header { background:#1e3a8a; color:#fff; padding:28px 20px; }
+  header h1 { margin:0 0 6px; font-size:24px; }
+  header p { margin:0; opacity:.85; font-size:14px; }
+  .wrap { max-width:1100px; margin:0 auto; padding:24px 20px 60px; }
+  .rule { background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:12px 16px; font-size:14px; margin:20px 0; }
+  h2 { font-size:18px; margin:32px 0 14px; border-left:4px solid #1e3a8a; padding-left:10px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+  .card .region { font-size:13px; color:var(--muted); }
+  .card .name { font-size:16px; font-weight:700; margin:4px 0 12px; line-height:1.4; }
+  .row { display:flex; justify-content:space-between; font-size:14px; margin:4px 0; }
+  .row b { font-variant-numeric:tabular-nums; }
+  .badge { display:inline-block; margin-top:12px; padding:4px 12px; border-radius:999px; font-size:13px; font-weight:700; color:#fff; }
+  .badge.ok { background:var(--green); }
+  .badge.no { background:var(--red); }
+  .card.no { border-color:#fecaca; }
+  iframe { width:100%; height:480px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+  footer { text-align:center; color:var(--muted); font-size:13px; padding:24px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>지자체 협력사업 신청 현황</h1>
+  <p>신청목록 기반 자동 판정 · Google Sheets 임베드</p>
+</header>
+<div class="wrap">
+
+  <div class="rule">
+    <b>자동 판정 기준</b> — 한도액 = 인구수 &times; 10천원/명.
+    신청 예산이 한도액 이하이면 <b style="color:var(--green)">승인</b>, 초과하면 <b style="color:var(--red)">반려</b>.
+  </div>
+
+  <h2>① 신청 카드</h2>
+  <div id="cards" class="grid"></div>
+
+  <h2>② Google Sheets 임베드</h2>
+  <iframe id="sheet"
+    src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTFSlFnRdh89AQrBWyoGX9XackUbHeDA8X2xmbHAIo_hxm6atMLj3LutUp14SYAGArTcyD8vAs6oXWo/pubhtml"
+    title="신청 자료 Google Sheets"
+    loading="lazy"></iframe>
+  <p style="font-size:13px;color:var(--muted)">
+    ※ Google Sheets에서 <b>파일 → 공유 → 웹에 게시 → 임베드</b>로 받은 코드의
+    src URL을 위 iframe의 <code>src</code> 속성에 넣으세요.
+  </p>
+
+</div>
+<footer>지자체 협력사업 · 정적 페이지 산출물</footer>
+
+<script>
+// 신청목록.json 데이터를 인라인으로 포함 (정적 호스팅에서 fetch/CORS 불필요)
+const DATA = [
+  {"지자체명":"가람군","인구수":30000,"예산":250000,"사업명":"가람군 청년 농촌 정착 지원 사업"},
+  {"지자체명":"나봄시","인구수":45000,"예산":500000,"사업명":"나봄시 스마트 관광 플랫폼 구축"},
+  {"지자체명":"다솔구","인구수":80000,"예산":600000,"사업명":"다솔구 어르신 디지털 친화 도시 조성"},
+  {"지자체명":"라윤시","인구수":60000,"예산":700000,"사업명":"라윤시 도심 보행자 안전망 구축"},
+  {"지자체명":"마을군","인구수":25000,"예산":200000,"사업명":"마을군 지역화폐 활성화 사업"},
+  {"지자체명":"바람시","인구수":100000,"예산":950000,"사업명":"바람시 친환경 에너지 전환 사업"},
+  {"지자체명":"사계구","인구수":55000,"예산":600000,"사업명":"사계구 청소년 안심 귀가 시스템"},
+  {"지자체명":"아현시","인구수":70000,"예산":650000,"사업명":"아현시 도시재생 거점공간 조성"},
+  {"지자체명":"자연군","인구수":40000,"예산":380000,"사업명":"자연군 생태관광 마을 조성"},
+  {"지자체명":"차돌시","인구수":90000,"예산":880000,"사업명":"차돌시 산업단지 디지털 전환 사업"}
+];
+const PER_CAPITA = 10; // 1인당 한도(천원)
+const won = n => n.toLocaleString("ko-KR");
+
+document.getElementById("cards").innerHTML = DATA.map(d => {
+  const limit = d.인구수 * PER_CAPITA;
+  const ok = d.예산 <= limit;
+  return `
+  <div class="card ${ok ? "" : "no"}">
+    <div class="region">${d.지자체명} · 인구 ${won(d.인구수)}명</div>
+    <div class="name">${d.사업명}</div>
+    <div class="row"><span>신청 예산</span><b>${won(d.예산)} 천원</b></div>
+    <div class="row"><span>한도액</span><b>${won(limit)} 천원</b></div>
+    <span class="badge ${ok ? "ok" : "no"}">${ok ? "승인" : "반려"}</span>
+  </div>`;
+}).join("");
+</script>
+</body>
+</html>
