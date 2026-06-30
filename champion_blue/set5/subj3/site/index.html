@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>2026 안전점검 보고서 — 장별 검색</title>
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --ink: #1f2a44;
+    --muted: #5b6680;
+    --accent: #2456c7;
+    --line: #e2e7f0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Malgun Gothic", "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  header {
+    background: linear-gradient(135deg, #2456c7, #3a7bd5);
+    color: #fff;
+    padding: 32px 20px;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+  header h1 { margin: 0 0 6px; font-size: 1.6rem; }
+  header p { margin: 0; opacity: .92; font-size: .95rem; }
+  main { padding: 28px 0 60px; }
+  .search-bar {
+    display: flex;
+    gap: 10px;
+    margin: 4px 0 14px;
+    flex-wrap: wrap;
+  }
+  .search-bar input {
+    flex: 1 1 240px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 1rem;
+  }
+  .search-bar input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+  .count { color: var(--muted); font-size: .92rem; margin: 0 0 18px; }
+  .count b { color: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 18px 16px;
+    box-shadow: 0 1px 3px rgba(31,42,68,.05);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(31,42,68,.10); }
+  .card .badge {
+    display: inline-block;
+    background: #eaf0ff;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: .78rem;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+  }
+  .card h2 { margin: 0 0 8px; font-size: 1.15rem; }
+  .card p { margin: 0; color: var(--muted); font-size: .92rem; }
+  mark { background: #fff2a8; padding: 0 2px; border-radius: 3px; }
+  .empty { color: var(--muted); padding: 30px 0; text-align: center; }
+  section.ext { margin-top: 44px; }
+  section.ext h2 { font-size: 1.25rem; margin: 0 0 6px; }
+  section.ext .desc { color: var(--muted); font-size: .92rem; margin: 0 0 16px; }
+  .embed {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .embed iframe { width: 100%; height: 420px; border: 0; display: block; }
+  table.matrix { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  table.matrix th, table.matrix td { border: 1px solid var(--line); padding: 9px 12px; text-align: left; }
+  table.matrix thead th { background: #eaf0ff; color: var(--ink); }
+  table.matrix td.bad { color: #c0392b; font-weight: 700; }
+  table.matrix td.ok { color: #1e8449; font-weight: 700; }
+  footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 24px 0 40px; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>2026 행정안전부 안전점검 보고서</h1>
+      <p>장별 카드 검색 + 사실 정합성 매트릭스</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="search-bar">
+      <input id="q" type="search" placeholder="키워드 검색 (제목·본문) — 예: 점검, 예산, 권혁수" autocomplete="off" />
+    </div>
+    <p class="count" id="count"></p>
+    <div class="grid" id="grid"></div>
+    <p class="empty" id="empty" hidden>검색 결과가 없습니다.</p>
+
+    <section class="ext">
+      <h2>📊 보고서 5장 사실 정합성 매트릭스</h2>
+      <p class="desc">
+        Google Sheets로 정리한 정합성 매트릭스를 <code>&lt;iframe&gt;</code>으로 임베드합니다.
+        (Sheets → 파일 → 공유 → 웹에 게시 → 임베드 코드)
+        아래 표는 임베드 미연결 시에도 동일 내용을 보여주는 정적 매트릭스입니다.
+      </p>
+
+      <!-- 외부 리소스: Google Sheets 임베드.
+           배포 시 아래 src를 본인 시트의 '웹에 게시 → 임베드 코드' URL로 교체하세요. -->
+      <div class="embed" id="sheetsEmbed" hidden>
+        <iframe id="sheetsFrame" src="" loading="lazy"
+                title="2026 안전점검 보고서 사실 정합성 매트릭스"></iframe>
+      </div>
+
+      <div class="embed" style="padding:0;">
+        <table class="matrix">
+          <thead>
+            <tr><th>지표</th><th>정본(1장 개요)</th><th>장별 기재값</th><th>판정</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>총 점검 건수</td><td>450건</td><td>4장: <b>440건</b></td><td class="bad">모순</td></tr>
+            <tr><td>지적사항</td><td>120건</td><td>2장: <b>115건</b></td><td class="bad">모순</td></tr>
+            <tr><td>시정 완료율</td><td>85%</td><td>4장: <b>82%</b></td><td class="bad">모순</td></tr>
+            <tr><td>예산 집행률</td><td>92%</td><td>3장: <b>90%</b></td><td class="bad">모순</td></tr>
+            <tr><td>총괄책임자</td><td>권혁수</td><td>5장: <b>권혁주</b></td><td class="bad">모순</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>행정안전부 안전관리과 · 가상 데이터(seed=205) · 정적 페이지 산출물</footer>
+
+<script>
+  // 배포 시: 본인 Google Sheets '웹에 게시' 임베드 URL을 넣으면 상단 시트가 표시됩니다.
+  const SHEETS_EMBED_URL = "";
+  if (SHEETS_EMBED_URL) {
+    document.getElementById("sheetsFrame").src = SHEETS_EMBED_URL;
+    document.getElementById("sheetsEmbed").hidden = false;
+  }
+
+  // 카드용 본문 요약(요약 = 앞 80자)
+  const summarize = (s) => {
+    const t = s.replace(/\s+/g, " ").trim();
+    return t.length > 80 ? t.slice(0, 80) + "…" : t;
+  };
+  const escapeHtml = (s) =>
+    s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const highlight = (s, kw) => {
+    const safe = escapeHtml(s);
+    if (!kw) return safe;
+    const esc = kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return safe.replace(new RegExp(esc, "gi"), (m) => `<mark>${m}</mark>`);
+  };
+
+  let ARTICLES = [];
+
+  function render(kw) {
+    const grid = document.getElementById("grid");
+    const list = kw
+      ? ARTICLES.filter((a) => a.제목.includes(kw) || a.본문.includes(kw))
+      : ARTICLES;
+
+    document.getElementById("count").innerHTML = `결과 <b>${list.length}</b>건`;
+    document.getElementById("empty").hidden = list.length !== 0;
+
+    grid.innerHTML = list
+      .map((a) => `
+        <article class="card">
+          <span class="badge">${a.장}장</span>
+          <h2>${highlight(a.제목, kw)}</h2>
+          <p>${highlight(summarize(a.본문), kw)}</p>
+        </article>`)
+      .join("");
+  }
+
+  // 장데이터.json 을 읽어 카드 생성. file:// 등 fetch 실패 시 안내.
+  fetch("장데이터.json")
+    .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then((data) => {
+      ARTICLES = data;
+      render("");
+      document.getElementById("q").addEventListener("input", (e) => render(e.target.value.trim()));
+    })
+    .catch(() => {
+      document.getElementById("count").textContent =
+        "장데이터.json 을 불러오지 못했습니다. (정적 호스팅 환경에서 정상 동작합니다)";
+    });
+</script>
+</body>
+</html>
