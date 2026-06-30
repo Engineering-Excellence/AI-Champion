@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>정부 안내서비스 카테고리 안내</title>
+<style>
+  :root { --bg:#f4f6fb; --card:#fff; --ink:#1f2a44; --sub:#5b6b88; --line:#e2e8f4; --brand:#2456c8; --brand-soft:#eaf0fc; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:"Malgun Gothic","맑은 고딕",system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:linear-gradient(135deg,#2456c8,#3f7be0); color:#fff; padding:32px 20px; text-align:center; }
+  header h1 { margin:0 0 6px; font-size:26px; }
+  header p { margin:0; opacity:.9; font-size:14px; }
+  .wrap { max-width:1040px; margin:0 auto; padding:24px 20px 56px; }
+
+  .cards-news { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin:8px 0 28px; }
+  .cards-news img { width:100%; height:auto; border-radius:12px; border:1px solid var(--line); background:#fff; box-shadow:0 2px 8px rgba(30,50,90,.06); }
+
+  .search-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:10px; }
+  .search-bar input { flex:1; min-width:200px; padding:10px 12px; font-size:15px; border:1px solid var(--line); border-radius:8px; outline:none; }
+  .search-bar input:focus { border-color:var(--brand); }
+  .count { font-size:14px; color:var(--sub); margin:4px 2px 20px; }
+  .count b { color:var(--brand); }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px; }
+  .cat-card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 18px 16px; box-shadow:0 2px 8px rgba(30,50,90,.05); transition:transform .12s,box-shadow .12s; }
+  .cat-card:hover { transform:translateY(-3px); box-shadow:0 8px 20px rgba(30,50,90,.10); }
+  .cat-card .name { font-size:19px; font-weight:700; margin:0 0 10px; }
+  .badge { display:inline-block; background:var(--brand-soft); color:var(--brand); font-size:13px; font-weight:700; padding:3px 10px; border-radius:999px; }
+  .cat-card dl { margin:12px 0 0; font-size:14px; color:var(--sub); }
+  .cat-card dt { font-weight:600; color:var(--ink); margin-top:8px; }
+  .cat-card .svc { font-size:13px; color:var(--sub); line-height:1.7; margin-top:6px; }
+  .empty { grid-column:1/-1; text-align:center; color:var(--sub); padding:40px 0; }
+  footer { text-align:center; color:var(--sub); font-size:13px; padding:20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>정부 안내서비스 카테고리 안내</h1>
+  <p>행정안전부 · 안내서비스 카드 + 카드뉴스</p>
+</header>
+
+<div class="wrap">
+  <!-- 외부 리소스: 카드뉴스 이미지 4장 임베드 -->
+  <section class="cards-news" aria-label="카드뉴스">
+    <img src="images/card1.png" alt="카드뉴스 1" />
+    <img src="images/card2.png" alt="카드뉴스 2" />
+    <img src="images/card3.png" alt="카드뉴스 3" />
+    <img src="images/card4.png" alt="카드뉴스 4" />
+  </section>
+
+  <div class="search-bar">
+    <input id="q" type="text" placeholder="카테고리 또는 문의기관으로 검색 (예: 복지, 지자체)" />
+  </div>
+  <div class="count" id="count"></div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<footer>데이터: 안내서비스.csv (24건) · 정적 페이지 산출물</footer>
+
+<script>
+const DATA = [{"서비스ID": "A001", "서비스명": "주민등록 발급 안내", "안내분야": "민원", "소관기관": "국토교통부", "온라인안내": "가능", "콜센터": "1374", "카테고리": "민원", "문의기관": "국토교통부"}, {"서비스ID": "A002", "서비스명": "전입신고 안내", "안내분야": "민원", "소관기관": "보건복지부", "온라인안내": "가능", "콜센터": "1352", "카테고리": "민원", "문의기관": "보건복지부"}, {"서비스ID": "A003", "서비스명": "인감증명 안내", "안내분야": "민원", "소관기관": "국토교통부", "온라인안내": "가능", "콜센터": "1313", "카테고리": "민원", "문의기관": "국토교통부"}, {"서비스ID": "A004", "서비스명": "민원접수 안내", "안내분야": "민원", "소관기관": "교육부", "온라인안내": "가능", "콜센터": "1341", "카테고리": "민원", "문의기관": "교육부"}, {"서비스ID": "A005", "서비스명": "정부24 이용 안내", "안내분야": "민원", "소관기관": "국토교통부", "온라인안내": "가능", "콜센터": "1356", "카테고리": "민원", "문의기관": "국토교통부"}, {"서비스ID": "A006", "서비스명": "기초연금 안내", "안내분야": "복지", "소관기관": "행정안전부", "온라인안내": "불가", "콜센터": "1386", "카테고리": "복지", "문의기관": "행정안전부"}, {"서비스ID": "A007", "서비스명": "복지급여 안내", "안내분야": "복지", "소관기관": "고용노동부", "온라인안내": "가능", "콜센터": "1319", "카테고리": "복지", "문의기관": "고용노동부"}, {"서비스ID": "A008", "서비스명": "장애인지원 안내", "안내분야": "복지", "소관기관": "보건복지부", "온라인안내": "가능", "콜센터": "1337", "카테고리": "복지", "문의기관": "보건복지부"}, {"서비스ID": "A009", "서비스명": "아동수당 안내", "안내분야": "복지", "소관기관": "지자체", "온라인안내": "가능", "콜센터": "1326", "카테고리": "복지", "문의기관": "지자체"}, {"서비스ID": "A010", "서비스명": "지방세 납부 안내", "안내분야": "세금", "소관기관": "보건복지부", "온라인안내": "가능", "콜센터": "1357", "카테고리": "세금", "문의기관": "보건복지부"}, {"서비스ID": "A011", "서비스명": "취득세 안내", "안내분야": "세금", "소관기관": "국토교통부", "온라인안내": "가능", "콜센터": "1341", "카테고리": "세금", "문의기관": "국토교통부"}, {"서비스ID": "A012", "서비스명": "재산세 안내", "안내분야": "세금", "소관기관": "지자체", "온라인안내": "가능", "콜센터": "1317", "카테고리": "세금", "문의기관": "지자체"}, {"서비스ID": "A013", "서비스명": "자동차등록 안내", "안내분야": "교통", "소관기관": "국토교통부", "온라인안내": "가능", "콜센터": "1399", "카테고리": "교통", "문의기관": "국토교통부"}, {"서비스ID": "A014", "서비스명": "운전면허 안내", "안내분야": "교통", "소관기관": "보건복지부", "온라인안내": "불가", "콜센터": "1357", "카테고리": "교통", "문의기관": "보건복지부"}, {"서비스ID": "A015", "서비스명": "주정차단속 안내", "안내분야": "교통", "소관기관": "국토교통부", "온라인안내": "가능", "콜센터": "1367", "카테고리": "교통", "문의기관": "국토교통부"}, {"서비스ID": "A016", "서비스명": "재난지원금 안내", "안내분야": "재난", "소관기관": "행정안전부", "온라인안내": "불가", "콜센터": "1356", "카테고리": "재난", "문의기관": "행정안전부"}, {"서비스ID": "A017", "서비스명": "대피소 안내", "안내분야": "재난", "소관기관": "국세청", "온라인안내": "가능", "콜센터": "1359", "카테고리": "재난", "문의기관": "국세청"}, {"서비스ID": "A018", "서비스명": "안전신고 안내", "안내분야": "재난", "소관기관": "국세청", "온라인안내": "가능", "콜센터": "1357", "카테고리": "재난", "문의기관": "국세청"}, {"서비스ID": "A019", "서비스명": "국민취업지원 안내", "안내분야": "일자리", "소관기관": "지자체", "온라인안내": "가능", "콜센터": "1386", "카테고리": "일자리", "문의기관": "지자체"}, {"서비스ID": "A020", "서비스명": "구직급여 안내", "안내분야": "일자리", "소관기관": "국토교통부", "온라인안내": "불가", "콜센터": "1350", "카테고리": "일자리", "문의기관": "국토교통부"}, {"서비스ID": "A021", "서비스명": "청년일자리 안내", "안내분야": "일자리", "소관기관": "지자체", "온라인안내": "가능", "콜센터": "1392", "카테고리": "일자리", "문의기관": "지자체"}, {"서비스ID": "A022", "서비스명": "평생교육 안내", "안내분야": "교육", "소관기관": "국토교통부", "온라인안내": "가능", "콜센터": "1379", "카테고리": "교육", "문의기관": "국토교통부"}, {"서비스ID": "A023", "서비스명": "학자금 안내", "안내분야": "교육", "소관기관": "지자체", "온라인안내": "가능", "콜센터": "1324", "카테고리": "교육", "문의기관": "지자체"}, {"서비스ID": "A024", "서비스명": "교육비지원 안내", "안내분야": "교육", "소관기관": "행정안전부", "온라인안내": "가능", "콜센터": "1368", "카테고리": "교육", "문의기관": "행정안전부"}];
+
+// 카테고리별로 묶어 카드 데이터(카테고리명·건수·대표 문의기관·서비스 목록) 구성
+function groupByCategory(rows) {
+  const map = new Map();
+  for (const r of rows) {
+    if (!map.has(r.카테고리)) map.set(r.카테고리, []);
+    map.get(r.카테고리).push(r);
+  }
+  return [...map.entries()].map(([cat, items]) => {
+    const freq = {};
+    for (const it of items) freq[it.문의기관] = (freq[it.문의기관] || 0) + 1;
+    const topAgency = Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0];
+    return { category: cat, count: items.length, agency: topAgency, items };
+  }).sort((a, b) => b.count - a.count || a.category.localeCompare(b.category, "ko"));
+}
+
+const grid = document.getElementById("grid");
+const countEl = document.getElementById("count");
+const qEl = document.getElementById("q");
+
+function render(keyword) {
+  const kw = (keyword || "").trim().toLowerCase();
+  // 카테고리명 또는 문의기관으로 필터링
+  const rows = DATA.filter(r =>
+    !kw || r.카테고리.toLowerCase().includes(kw) || r.문의기관.toLowerCase().includes(kw)
+  );
+  const groups = groupByCategory(rows);
+
+  countEl.innerHTML = `결과 <b>${rows.length}</b>건 · 카테고리 ${groups.length}개`;
+  grid.innerHTML = "";
+
+  if (groups.length === 0) {
+    grid.innerHTML = `<p class="empty">검색 결과가 없습니다.</p>`;
+    return;
+  }
+
+  for (const g of groups) {
+    const svc = g.items.map(it => `· ${it.서비스명} (${it.문의기관})`).join("<br>");
+    const card = document.createElement("div");
+    card.className = "cat-card";
+    card.innerHTML = `
+      <p class="name">${g.category}</p>
+      <span class="badge">${g.count}건</span>
+      <dl>
+        <dt>대표 문의기관</dt>
+        <dd>${g.agency}</dd>
+      </dl>
+      <div class="svc">${svc}</div>`;
+    grid.appendChild(card);
+  }
+}
+
+qEl.addEventListener("input", e => render(e.target.value));
+render("");
+</script>
+</body>
+</html>
