@@ -101,3 +101,5 @@ cd champion_blue/day3/mcp/mcp-narajangter && npm install && npm run build
 - matplotlib 한글 레이블: `plt.rcParams["font.family"] = "Malgun Gothic"` 필수
 - PyInstaller 빌드 산출물(`build/`, `dist/`, `*.pyc`)은 `.gitignore`로 제외됨
 - 노트북(`.ipynb`)은 셀이 상태를 공유하므로 항상 처음부터 재실행
+- **커밋 메시지는 Conventional Commits**(`type(scope): 설명`), **버전 태그는 SemVer**(`vMAJOR.MINOR.PATCH`) — 상세는 AGENTS.md "Git 규칙" 참조
+- **모든 파일·커밋 메시지는 UTF-8**(한글 깨짐 방지); PowerShell로 파일 저장 시 `-Encoding utf8` 명시
