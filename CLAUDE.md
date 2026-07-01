@@ -83,10 +83,16 @@ streamlit run champion_blue/day1/analysis_claude.py
 python champion_blue/day1/analysis_chatgpt.py
 
 # 버스정류장 PDF 보고서 생성 (Day 2-A)
-python champion_blue/day2/generate_report.py
+python champion_blue/day2/analysis/generate_report.py
 
 # 민원 데이터 HTML 대시보드 생성 (Day 2-C)
-python champion_blue/day2_agent/dashboard/generate_dashboard.py
+python champion_blue/day2/agent/dashboard/generate_dashboard.py
+
+# 서울 지하철 실시간 HTML 생성 (Day 3)
+python champion_blue/day3/api/seoulmetro/generate_metro_html.py
+
+# 나라장터 입찰공고 MCP 서버 빌드 (Day 3, Node.js)
+cd champion_blue/day3/mcp/mcp-narajangter && npm install && npm run build
 ```
 
 ### 핵심 규칙

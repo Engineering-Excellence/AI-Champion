@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>지역균형발전 사업검색</title>
+<style>
+  :root { --bg:#f4f6f9; --card:#fff; --line:#e2e6ec; --brand:#1f5eff; --text:#1c2430; --muted:#6b7684; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Malgun Gothic","맑은 고딕",system-ui,sans-serif; background:var(--bg); color:var(--text); }
+  header { background:linear-gradient(135deg,#1f5eff,#2aa7ff); color:#fff; padding:28px 20px; }
+  header h1 { margin:0 0 6px; font-size:24px; }
+  header p { margin:0; opacity:.9; font-size:14px; }
+  .wrap { max-width:1080px; margin:0 auto; padding:20px; }
+  .hero { display:flex; gap:18px; flex-wrap:wrap; align-items:stretch; margin-bottom:18px; }
+  .hero img { height:150px; border-radius:12px; object-fit:cover; box-shadow:0 2px 10px rgba(0,0,0,.08); }
+  .controls { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; display:flex; gap:12px; flex-wrap:wrap; align-items:end; margin-bottom:14px; }
+  .field { display:flex; flex-direction:column; gap:4px; }
+  .field label { font-size:12px; color:var(--muted); }
+  .field select, .field input { padding:9px 12px; border:1px solid var(--line); border-radius:8px; font-size:14px; min-width:150px; background:#fff; }
+  .count { margin-left:auto; font-size:15px; font-weight:700; color:var(--brand); align-self:center; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,.04); }
+  .card h3 { margin:0 0 10px; font-size:16px; }
+  .tag { display:inline-block; font-size:12px; padding:3px 9px; border-radius:20px; background:#eef3ff; color:var(--brand); margin-right:6px; }
+  .card .row { font-size:13px; color:var(--muted); margin-top:6px; }
+  .card .cost { font-size:18px; font-weight:700; color:var(--text); margin-top:10px; }
+  section.rss { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-top:24px; }
+  section.rss h2 { margin:0 0 12px; font-size:18px; }
+  .rss-item { padding:10px 0; border-bottom:1px solid var(--line); }
+  .rss-item:last-child { border-bottom:none; }
+  .rss-item a { color:var(--text); text-decoration:none; font-weight:600; font-size:14px; }
+  .rss-item a:hover { color:var(--brand); }
+  .rss-item .date { font-size:12px; color:var(--muted); margin-top:3px; }
+  footer { text-align:center; color:var(--muted); font-size:12px; padding:24px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="padding-top:0;padding-bottom:0;">
+    <h1>지역균형발전 사업검색</h1>
+    <p>지역균형발전 사업 데이터를 검색·필터링하고 재정 현황과 정책 뉴스를 함께 확인하세요.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- 첨부 카드뉴스 이미지 (보조 시각 자료) -->
+  <div class="hero">
+    <img src="카드뉴스/카드뉴스1.jpg" alt="지역균형발전 카드뉴스 1">
+    <img src="카드뉴스/카드뉴스2.jpg" alt="지역균형발전 카드뉴스 2">
+    <img src="카드뉴스/카드뉴스3.jpg" alt="지역균형발전 카드뉴스 3">
+  </div>
+
+  <!-- 검색 · 필터 -->
+  <div class="controls">
+    <div class="field">
+      <label for="q">사업명 검색</label>
+      <input id="q" type="text" placeholder="사업명 입력…">
+    </div>
+    <div class="field">
+      <label for="field">사업분야</label>
+      <select id="field"><option value="">전체</option></select>
+    </div>
+    <div class="field">
+      <label for="region">지역</label>
+      <select id="region"><option value="">전체</option></select>
+    </div>
+    <div class="count">결과 <span id="cnt">0</span>건</div>
+  </div>
+
+  <div id="grid" class="grid"></div>
+
+  <!-- korea.kr RSS 임베드 -->
+  <section class="rss">
+    <h2>📰 korea.kr 정책뉴스 (최신)</h2>
+    <div id="rss">불러오는 중…</div>
+  </section>
+</div>
+
+<footer>데이터 출처: 지역균형발전 사업 500건 · 재정자립도 현황 · RSS: korea.kr</footer>
+
+<script src="data.js"></script>
+<script src="rss.js"></script>
+<script>
+  const MAX_CARDS = 60; // 성능을 위해 화면에는 상위 N건만 렌더 (결과 N건 카운트는 전체 기준)
+  const fieldSel = document.getElementById('field');
+  const regionSel = document.getElementById('region');
+  const qInput = document.getElementById('q');
+  const grid = document.getElementById('grid');
+  const cnt = document.getElementById('cnt');
+
+  // 필터 옵션 채우기
+  [...new Set(PROJECTS.map(p => p.분야))].sort().forEach(v => fieldSel.add(new Option(v, v)));
+  [...new Set(PROJECTS.map(p => p.지역))].sort().forEach(v => regionSel.add(new Option(v, v)));
+
+  function render() {
+    const q = qInput.value.trim();
+    const f = fieldSel.value, r = regionSel.value;
+    const filtered = PROJECTS.filter(p =>
+      (!q || p.명.includes(q)) && (!f || p.분야 === f) && (!r || p.지역 === r));
+    cnt.textContent = filtered.length;
+    grid.innerHTML = filtered.slice(0, MAX_CARDS).map(p => `
+      <div class="card">
+        <h3>${p.명}</h3>
+        <div><span class="tag">${p.지역}</span><span class="tag">${p.분야}</span></div>
+        <div class="row">착수 ${p.연도} · 완료여부 ${p.완료}</div>
+        <div class="cost">${p.비.toLocaleString()} 억 원</div>
+      </div>`).join('') ||
+      '<p style="color:#6b7684">조건에 맞는 사업이 없습니다.</p>';
+    if (filtered.length > MAX_CARDS) {
+      grid.innerHTML += `<p style="grid-column:1/-1;color:#6b7684">…상위 ${MAX_CARDS}건만 표시 (전체 ${filtered.length}건)</p>`;
+    }
+  }
+  [qInput, fieldSel, regionSel].forEach(el => el.addEventListener('input', render));
+  render();
+
+  // ---- korea.kr RSS 피드 임베드 ----
+  // 최신 항목은 라이브 피드에서 가져오되(CORS 프록시 경유),
+  // 실패 시 빌드 시점에 저장한 rss.js 스냅샷(RSS_FALLBACK)으로 5건 이상을 항상 표시한다.
+  const RSS_URL = 'https://www.korea.kr/rss/policy.xml';
+  const PROXIES = [
+    u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+    u => 'https://corsproxy.io/?url=' + encodeURIComponent(u),
+  ];
+  const rssBox = document.getElementById('rss');
+
+  function paintRss(items, note) {
+    rssBox.innerHTML = (note ? `<p class="date" style="margin:0 0 8px">${note}</p>` : '') +
+      items.slice(0, 8).map(it => `
+        <div class="rss-item"><a href="${it.link}" target="_blank" rel="noopener">${it.title}</a>
+          <div class="date">${it.date}</div></div>`).join('');
+  }
+
+  async function loadRss() {
+    for (const build of PROXIES) {
+      try {
+        const res = await fetch(build(RSS_URL));
+        if (!res.ok) continue;
+        const xml = await res.text();
+        const nodes = [...new DOMParser().parseFromString(xml, 'text/xml').querySelectorAll('item')];
+        if (nodes.length < 5) continue;
+        paintRss(nodes.map(n => ({
+          title: n.querySelector('title')?.textContent || '(제목 없음)',
+          link: n.querySelector('link')?.textContent || '#',
+          date: n.querySelector('pubDate')?.textContent || '',
+        })));
+        return;
+      } catch (_) { /* 다음 프록시 시도 */ }
+    }
+    // 라이브 로드 실패 → 스냅샷 폴백
+    paintRss(RSS_FALLBACK, '※ 라이브 연결 실패로 저장된 최신 스냅샷을 표시합니다.');
+  }
+  loadRss();
+</script>
+</body>
+</html>
